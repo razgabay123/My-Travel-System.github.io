@@ -3499,7 +3499,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 employee = employees.find(e => e.phone === smsCode || e.phone.replace(/-/g, '') === smsCode.replace(/-/g, ''));
                 // If not found, check if it's an email
                 if (!employee && smsCode.includes('@')) {
-                    employee = employees.find(e => e.email && e.email.toLowerCase() === smsCode.toLowerCase());
+                    const emailToFind = smsCode.toLowerCase().trim();
+                    console.log('Searching for employee with email:', emailToFind);
+                    employee = employees.find(e => {
+                        if (e.email) {
+                            const employeeEmail = e.email.toLowerCase().trim();
+                            console.log('Comparing:', employeeEmail, 'with', emailToFind);
+                            return employeeEmail === emailToFind;
+                        }
+                        return false;
+                    });
+                    console.log('Found employee:', employee ? employee.name : 'Not found');
                 }
             }
 
@@ -3511,6 +3521,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     smsModalState.employee = employee;
                     smsModalState.verificationToken = verificationToken;
                     
+                    console.log('Employee found:', {
+                        name: employee.name,
+                        email: employee.email,
+                        hasEmail: !!employee.email,
+                        emailTrimmed: employee.email ? employee.email.trim() : 'N/A',
+                        emailConfigEnabled: EMAIL_CONFIG.enabled
+                    });
+                    
                     // Prefer email if available and configured (FREE!)
                     if (employee.email && employee.email.trim() && EMAIL_CONFIG.enabled) {
                         // Validate email format
@@ -3518,6 +3536,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             alert('כתובת האימייל לא תקינה. אנא בדוק את כתובת האימייל של העובד.');
                             return;
                         }
+                        
+                        const emailToSend = employee.email.trim();
+                        console.log('Sending email to:', emailToSend);
+                        
                         // Save token to localStorage so we can verify it when user clicks the link
                         const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
                         resetTokens[verificationToken] = {
@@ -3527,7 +3549,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         };
                         localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
                         
-                        sendEmail(employee.email, employee.name, verificationToken, employee).then(() => {
+                        sendEmail(emailToSend, employee.name, verificationToken, employee).then(() => {
                             alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך ולחץ על הקישור לאיפוס הסיסמה.`);
                             forgotPasswordModalState.verifiedEmployee = employee;
                             forgotPasswordModalState.step = 'reset';
@@ -3542,10 +3564,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 text: error.text,
                                 serviceId: EMAIL_CONFIG.serviceId,
                                 templateId: EMAIL_CONFIG.templateId,
-                                publicKey: EMAIL_CONFIG.publicKey ? 'Set' : 'Missing'
+                                publicKey: EMAIL_CONFIG.publicKey ? 'Set' : 'Missing',
+                                emailSent: employee.email
                             });
                             alert(`שגיאה בשליחת אימייל: ${error.message || 'Unknown error'}. אנא נסה שוב או השתמש בקוד חבר.`);
                         });
+                    } else if (!employee.email || !employee.email.trim()) {
+                        // Employee found but no email
+                        alert(`העובד ${employee.name} נמצא, אבל אין לו כתובת אימייל במערכת. אנא השתמש בקוד חבר או הוסף אימייל לעובד.`);
+                    } else if (!EMAIL_CONFIG.enabled) {
+                        // Email service not enabled
+                        alert('שירות האימייל לא מופעל. אנא השתמש בקוד חבר או הפעל את שירות האימייל.');
                     } else if (SMS_CONFIG.enabled) {
                         // Fallback to SMS if email not available
                         sendSMS(employee.phone, verificationToken).then(() => {
