@@ -69,7 +69,7 @@
             serviceId: 'service_hizfexe', // From EmailJS dashboard
             templateId: 'template_g0fjesl', // From EmailJS dashboard
             publicKey: 'wqjXHpEuuQHKdV0PB', // From EmailJS dashboard
-            baseUrl: 'https://razgabay123.github.io' // Your Netlify URL
+            baseUrl: 'https://razgabay123.github.io' // Replace with your GitHub Pages URL (e.g., https://username.github.io/repo-name)
         };
 
         // SMS API Configuration (Optional - costs money)
@@ -3512,23 +3512,22 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     smsModalState.verificationToken = verificationToken;
                     
                     // Prefer email if available and configured (FREE!)
-                    if (employee.email && EMAIL_CONFIG.enabled) {
-                        // Create a token that includes email hash for verification across domains
-                        // Simple hash function for email (not cryptographically secure, but good enough for this use case)
-                        const emailHash = btoa(employee.email.toLowerCase()).substring(0, 10);
-                        const tokenWithEmail = `${verificationToken}_${emailHash}`;
-                        
-                        // Save token to localStorage (for local use) AND to Netlify localStorage (for remote use)
+                    if (employee.email && employee.email.trim() && EMAIL_CONFIG.enabled) {
+                        // Validate email format
+                        if (!employee.email.includes('@')) {
+                            alert('כתובת האימייל לא תקינה. אנא בדוק את כתובת האימייל של העובד.');
+                            return;
+                        }
+                        // Save token to localStorage so we can verify it when user clicks the link
                         const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
-                        resetTokens[tokenWithEmail] = {
+                        resetTokens[verificationToken] = {
                             employeeId: employee.id,
-                            email: employee.email.toLowerCase(), // Store email for verification
                             timestamp: Date.now(),
                             expiresIn: 3600000 // 1 hour expiration
                         };
                         localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
                         
-                        sendEmail(employee.email, employee.name, tokenWithEmail, employee).then(() => {
+                        sendEmail(employee.email, employee.name, verificationToken, employee).then(() => {
                             alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך ולחץ על הקישור לאיפוס הסיסמה.`);
                             forgotPasswordModalState.verifiedEmployee = employee;
                             forgotPasswordModalState.step = 'reset';
@@ -3537,7 +3536,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             render();
                         }).catch((error) => {
                             console.error('Email sending failed:', error);
-                            alert('שגיאה בשליחת אימייל. אנא נסה שוב או השתמש בקוד חבר.');
+                            console.error('Error details:', {
+                                message: error.message,
+                                status: error.status,
+                                text: error.text,
+                                serviceId: EMAIL_CONFIG.serviceId,
+                                templateId: EMAIL_CONFIG.templateId,
+                                publicKey: EMAIL_CONFIG.publicKey ? 'Set' : 'Missing'
+                            });
+                            alert(`שגיאה בשליחת אימייל: ${error.message || 'Unknown error'}. אנא נסה שוב או השתמש בקוד חבר.`);
                         });
                     } else if (SMS_CONFIG.enabled) {
                         // Fallback to SMS if email not available
@@ -3572,6 +3579,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 throw new Error('Email service not configured');
             }
 
+            // Validate email address
+            if (!emailAddress || !emailAddress.trim()) {
+                throw new Error('Email address is empty');
+            }
+
             // Initialize EmailJS
             if (typeof emailjs === 'undefined') {
                 throw new Error('EmailJS library not loaded');
@@ -3579,32 +3591,51 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
             emailjs.init(EMAIL_CONFIG.publicKey);
 
-            // Create verification link using the configured baseUrl - pointing to index.html (root)
+            // Create verification link using the configured baseUrl
             const baseUrl = EMAIL_CONFIG.baseUrl || window.location.origin;
-            const verificationLink = `${baseUrl}/?reset=${verificationToken}`;
+            const pagePath = window.location.pathname || '/transport-system.html';
+            const verificationLink = `${baseUrl}${pagePath}?reset=${verificationToken}`;
+
+            // Prepare template parameters - EmailJS uses different variable names
+            // Note: Make sure your EmailJS template has "To Email" field set to {{to_email}}
+            const templateParams = {
+                to_email: emailAddress.trim(),
+                to: emailAddress.trim(), // Some templates use 'to' instead of 'to_email'
+                to_name: userName || '',
+                user_name: userName || '',
+                from_name: 'מערכת הסעות', // Optional: sender name
+                reset_link: verificationLink,
+                message: `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול לחץ כאן: ${verificationLink}`,
+                // Add worker-specific information
+                worker_id: employee?.id || '',
+                worker_phone: employee?.phone || '',
+                worker_route: employee?.route || '',
+                worker_city: employee?.city || '',
+                worker_address: employee?.address || '',
+                worker_code: employee?.code || ''
+            };
+
+            console.log('Sending email with params:', {
+                to_email: templateParams.to_email,
+                serviceId: EMAIL_CONFIG.serviceId,
+                templateId: EMAIL_CONFIG.templateId
+            });
 
             try {
                 const response = await emailjs.send(
                     EMAIL_CONFIG.serviceId,
                     EMAIL_CONFIG.templateId,
-                    {
-                        to_email: emailAddress,
-                        user_name: userName,
-                        reset_link: verificationLink,
-                        message: `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול לחץ כאן: ${verificationLink}`,
-                        // Add worker-specific information
-                        worker_id: employee?.id || '',
-                        worker_phone: employee?.phone || '',
-                        worker_route: employee?.route || '',
-                        worker_city: employee?.city || '',
-                        worker_address: employee?.address || '',
-                        worker_code: employee?.code || ''
-                    }
+                    templateParams
                 );
 
                 return response;
             } catch (error) {
                 console.error('Error sending email:', error);
+                console.error('EmailJS error details:', {
+                    status: error.status,
+                    text: error.text,
+                    message: error.message
+                });
                 throw error;
             }
         }
@@ -3622,9 +3653,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 formattedPhone = formattedPhone.startsWith('0') ? '972' + formattedPhone.substring(1) : '972' + formattedPhone;
             }
 
-            // Create verification link using the configured baseUrl
-            const baseUrl = EMAIL_CONFIG.baseUrl || window.location.origin;
-            const verificationLink = `${baseUrl}/?reset=${verificationToken}`;
+            // Create verification link (in production, this would be your actual domain)
+            const verificationLink = `${window.location.origin}?reset=${verificationToken}`;
             const message = `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול ${verificationLink}`;
 
             try {
@@ -4077,66 +4107,34 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const resetToken = urlParams.get('reset');
             
             if (resetToken) {
-                // Try to load from localStorage first
+                // Load reset tokens from localStorage
                 const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
-                let tokenData = resetTokens[resetToken];
-                
-                // If token not found in localStorage, try to verify by email hash
-                if (!tokenData && resetToken.includes('_')) {
-                    const [token, emailHash] = resetToken.split('_');
-                    
-                    // Find employee by matching email hash
-                    for (const emp of employees) {
-                        if (emp.email) {
-                            const empEmailHash = btoa(emp.email.toLowerCase()).substring(0, 10);
-                            if (empEmailHash === emailHash) {
-                                // Found matching employee - create token data
-                                tokenData = {
-                                    employeeId: emp.id,
-                                    email: emp.email.toLowerCase(),
-                                    timestamp: Date.now() - 1800000, // Assume token was created 30 min ago (we don't have exact time)
-                                    expiresIn: 3600000
-                                };
-                                break;
-                            }
-                        }
-                    }
-                }
+                const tokenData = resetTokens[resetToken];
                 
                 if (tokenData) {
                     // Check if token is expired (1 hour)
                     const now = Date.now();
-                    // If timestamp is missing or invalid, assume it's recent (within last hour)
-                    const tokenAge = tokenData.timestamp ? (now - tokenData.timestamp) : 0;
-                    if (tokenAge > tokenData.expiresIn) {
+                    if (now - tokenData.timestamp > tokenData.expiresIn) {
                         alert('קישור איפוס הסיסמה פג תוקף. אנא בקש קישור חדש.');
-                        // Clean up expired token if it exists in localStorage
-                        if (resetTokens[resetToken]) {
-                            delete resetTokens[resetToken];
-                            localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
-                        }
+                        // Clean up expired token
+                        delete resetTokens[resetToken];
+                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
                         // Remove token from URL
                         window.history.replaceState({}, document.title, window.location.pathname);
                         return;
                     }
                     
                     // Find the employee
-                    const employee = employees.find(e => 
-                        e.id === tokenData.employeeId || 
-                        (tokenData.email && e.email && e.email.toLowerCase() === tokenData.email)
-                    );
-                    
+                    const employee = employees.find(e => e.id === tokenData.employeeId);
                     if (employee) {
                         // Open password reset modal
                         forgotPasswordModalState.verifiedEmployee = employee;
                         forgotPasswordModalState.step = 'reset';
                         forgotPasswordModalState.show = true;
                         
-                        // Clean up used token if it exists in localStorage
-                        if (resetTokens[resetToken]) {
-                            delete resetTokens[resetToken];
-                            localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
-                        }
+                        // Clean up used token
+                        delete resetTokens[resetToken];
+                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
                         
                         // Remove token from URL
                         window.history.replaceState({}, document.title, window.location.pathname);
