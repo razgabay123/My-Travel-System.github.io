@@ -62,25 +62,41 @@
             const urlParams = new URLSearchParams(window.location.search);
             const resetToken = urlParams.get('reset');
             
+            console.log('Checking reset token:', resetToken);
+            console.log('Employees loaded:', employees.length);
+            
             if (!resetToken) {
                 renderError('קישור לא תקין. אנא השתמש בקישור מהאימייל.');
                 return;
             }
 
-            // Load reset tokens from localStorage
+            // Load reset tokens from localStorage (might be empty if coming from different domain)
             const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
             const tokenData = resetTokens[resetToken];
+            
+            console.log('Token data from localStorage:', tokenData);
             
             if (!tokenData) {
                 // Try to verify by email hash (for cross-domain support)
                 if (resetToken.includes('_')) {
                     const [token, emailHash] = resetToken.split('_');
+                    console.log('Token parts:', { token, emailHash });
                     
                     // Find employee by matching email hash
                     for (const emp of employees) {
                         if (emp.email) {
-                            const empEmailHash = btoa(emp.email.toLowerCase()).substring(0, 10);
+                            const empEmail = emp.email.toLowerCase().trim();
+                            const empEmailHash = btoa(empEmail).substring(0, 10);
+                            console.log('Comparing:', {
+                                employee: emp.name,
+                                email: empEmail,
+                                hash: empEmailHash,
+                                tokenHash: emailHash,
+                                match: empEmailHash === emailHash
+                            });
+                            
                             if (empEmailHash === emailHash) {
+                                console.log('Found matching employee:', emp.name);
                                 resetState.employee = emp;
                                 resetState.token = resetToken;
                                 resetState.show = true;
@@ -92,6 +108,10 @@
                             }
                         }
                     }
+                    
+                    console.log('No matching employee found for email hash');
+                } else {
+                    console.log('Token does not contain email hash');
                 }
                 
                 renderError('קישור איפוס הסיסמה לא תקין או פג תוקף. אנא בקש קישור חדש.');
@@ -233,6 +253,10 @@
 
         // Initialize
         loadEmployees();
+        console.log('Loaded employees:', employees.length);
+        if (employees.length === 0) {
+            console.warn('No employees found in localStorage. Make sure employees are stored.');
+        }
         checkPasswordResetToken();
     </script>
 </body>
