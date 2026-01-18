@@ -3551,9 +3551,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         
                         sendEmail(emailToSend, employee.name, verificationToken, employee).then(() => {
                             alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך ולחץ על הקישור לאיפוס הסיסמה.`);
-                            forgotPasswordModalState.verifiedEmployee = employee;
-                            forgotPasswordModalState.step = 'reset';
-                            forgotPasswordModalState.show = true;
+                            // Close the modal - password reset will happen when user clicks the link in email
+                            forgotPasswordModalState.show = false;
                             smsModalState.show = false;
                             render();
                         }).catch((error) => {
@@ -3626,10 +3625,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const verificationLink = `${baseUrl}${pagePath}?reset=${verificationToken}`;
 
             // Prepare template parameters - EmailJS uses different variable names
-            // Note: Make sure your EmailJS template has "To Email" field set to {{to_email}}
+            // IMPORTANT: In EmailJS template, set "To Email" field to: {{to_email}}
+            // The "To Email" field in the template MUST use {{to_email}} variable
+            const emailToSend = emailAddress.trim();
             const templateParams = {
-                to_email: emailAddress.trim(),
-                to: emailAddress.trim(), // Some templates use 'to' instead of 'to_email'
+                to_email: emailToSend, // This MUST match the variable name in your EmailJS template's "To Email" field
+                reply_to: emailToSend, // Optional: reply-to address
                 to_name: userName || '',
                 user_name: userName || '',
                 from_name: 'מערכת הסעות', // Optional: sender name
@@ -3646,8 +3647,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
             console.log('Sending email with params:', {
                 to_email: templateParams.to_email,
+                emailAddress: emailToSend,
                 serviceId: EMAIL_CONFIG.serviceId,
-                templateId: EMAIL_CONFIG.templateId
+                templateId: EMAIL_CONFIG.templateId,
+                allParams: templateParams
             });
 
             try {
