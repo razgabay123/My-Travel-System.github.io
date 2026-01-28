@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>יצירת אייקונים לאפליקציה</title>
+</head>
+<body>
+    <h1>יצירת אייקונים לאפליקציה</h1>
+    <p>לחץ על הכפתור כדי ליצור את האייקונים (192x192 ו-512x512)</p>
+    <button onclick="generateIcons()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">צור אייקונים</button>
+    <div id="results" style="margin-top: 20px;"></div>
+
+    <script>
+        function generateIcons() {
+            const sizes = [192, 512];
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>יוצר אייקונים...</p>';
+
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Yellow background rectangle
+                ctx.fillStyle = '#FFCA0F';
+                ctx.fillRect(0, 0, size, size);
+
+                // Grey car icon
+                ctx.fillStyle = '#507480';
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const carWidth = size * 0.6;
+                const carHeight = size * 0.4;
+
+                // Car body (rectangle with rounded corners)
+                ctx.beginPath();
+                ctx.roundRect(centerX - carWidth/2, centerY - carHeight/2, carWidth, carHeight, size * 0.05);
+                ctx.fill();
+
+                // Car windows
+                ctx.fillStyle = '#374151';
+                const windowWidth = carWidth * 0.25;
+                const windowHeight = carHeight * 0.4;
+                const windowY = centerY - carHeight/2 + carHeight * 0.15;
+
+                // Left window
+                ctx.fillRect(centerX - carWidth/2 + carWidth * 0.15, windowY, windowWidth, windowHeight);
+                // Right window
+                ctx.fillRect(centerX + carWidth/2 - carWidth * 0.15 - windowWidth, windowY, windowWidth, windowHeight);
+
+                // Car wheels
+                ctx.fillStyle = '#1f2937';
+                const wheelRadius = size * 0.08;
+                const wheelY = centerY + carHeight/2 - wheelRadius * 0.5;
+
+                // Left wheel
+                ctx.beginPath();
+                ctx.arc(centerX - carWidth/3, wheelY, wheelRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Right wheel
+                ctx.beginPath();
+                ctx.arc(centerX + carWidth/3, wheelY, wheelRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Convert to blob and download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `icon-${size}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+            });
+
+            results.innerHTML = '<p style="color: green;">✓ האייקונים נוצרו והורדו בהצלחה! העלה אותם לתיקיית הפרויקט.</p>';
+        }
+
+        // Polyfill for roundRect if not supported
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
