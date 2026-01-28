@@ -1,8 +1,6 @@
 // Service Worker for Transport System PWA
-const CACHE_NAME = 'transport-system-v1';
+const CACHE_NAME = 'transport-system-v2'; // Updated version to force cache refresh
 const urlsToCache = [
-  '/transport-system.html',
-  '/index.html',
   '/manifest.json',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -12,7 +10,7 @@ const urlsToCache = [
   'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js'
 ];
 
-// Install event - cache resources
+// Install event - cache resources (but NOT HTML files)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -23,17 +21,40 @@ self.addEventListener('install', (event) => {
         console.log('Cache install failed:', err);
       })
   );
+  // Force activation of new service worker
+  self.skipWaiting();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network first for HTML, cache first for assets
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      })
-  );
+  const url = new URL(event.request.url);
+  
+  // For HTML files: network first, then cache (always get fresh version)
+  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache the fresh response for offline use
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try cache
+          return caches.match(event.request);
+        })
+    );
+  } else {
+    // For other files: cache first, then network
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          return response || fetch(event.request);
+        })
+    );
+  }
 });
 
 // Activate event - clean up old caches
