@@ -4446,29 +4446,76 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 event.stopPropagation();
             }
             
-            // IMPORTANT: An APK is a compiled Android app that wraps your HTML.
-            // You need to BUILD it first using PWABuilder or Capacitor.
-            // This button opens PWABuilder which will generate the APK from your live website.
+            // Try to download APK first
+            const apkUrl = '/transport-system.apk';
+            const link = document.createElement('a');
+            link.href = apkUrl;
+            link.download = 'מערכת-הסעות.apk';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
-            // Get the live website URL (not local file://)
+            // Show instructions modal
             const siteUrl = EMAIL_CONFIG.baseUrl || 'https://razgabay123.github.io';
-            
-            // Open PWABuilder to build APK from your HTML app
-            // Steps: 1) Click "Build My PWA" 2) Choose "Android" 3) Download the APK
-            // Then upload that APK file to your project folder
-            const pwabuilderUrl = `https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}`;
-            
-            // Use window.location if popup is blocked, otherwise open in new tab
-            try {
-                const newWindow = window.open(pwabuilderUrl, '_blank', 'noopener,noreferrer');
-                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                    // Popup blocked, redirect current window
-                    window.location.href = pwabuilderUrl;
-                }
-            } catch (e) {
-                // Fallback: redirect current window
-                window.location.href = pwabuilderUrl;
-            }
+            const instructions = `
+                <div style="text-align: right; direction: rtl; line-height: 1.8;">
+                    <h3 style="color: ${COLORS.primary}; margin-bottom: 20px; font-size: 20px;">
+                        <i class="fas fa-mobile-alt ml-2"></i>
+                        הוראות בניית APK:
+                    </h3>
+                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
+                            שלב 1: פתח את PWABuilder
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            לחץ על הכפתור למטה או היכנס ל: 
+                            <a href="https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}" target="_blank" style="color: ${COLORS.primary}; text-decoration: underline;">PWABuilder.com</a>
+                        </p>
+                        
+                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
+                            שלב 2: בנה את ה-APK
+                        </p>
+                        <ol style="list-style: decimal; padding-right: 25px; margin-bottom: 15px;">
+                            <li>לחץ על הכפתור <strong style="color: ${COLORS.primary}; font-size: 16px;">"Package for Stores"</strong></li>
+                            <li>בחר <strong>"Android"</strong> מהרשימה</li>
+                            <li>לחץ על <strong>"Generate Package"</strong> או <strong>"Download"</strong></li>
+                            <li>המתן לסיום הבנייה (1-2 דקות)</li>
+                            <li>הורד את קובץ ה-APK</li>
+                        </ol>
+                        <p style="background: #e7f3ff; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 14px; border-right: 4px solid ${COLORS.primary};">
+                            <strong>📱 הערה:</strong> הכפתור <strong>"Download Test Package"</strong> הוא לבדיקות בלבד. 
+                            <br>לבניית APK מלא, השתמש ב-<strong>"Package for Stores"</strong>
+                        </p>
+                        
+                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
+                            שלב 3: חלץ את ה-APK מה-ZIP
+                        </p>
+                        <ol style="list-style: decimal; padding-right: 25px; margin-bottom: 15px;">
+                            <li>פתח את קובץ ה-ZIP שהורדת</li>
+                            <li>חפש בתוך התיקייה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">.apk</code></li>
+                            <li>הוצא את קובץ ה-APK מהתיקייה</li>
+                            <li>שנה את שמו ל-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code></li>
+                        </ol>
+                        
+                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
+                            שלב 4: העלה את הקובץ
+                        </p>
+                        <p>
+                            העלה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code> לתיקיית הפרויקט ב-GitHub (אותה תיקייה שבה נמצא transport-system.html).
+                        </p>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}" target="_blank" 
+                           style="display: inline-block; padding: 12px 24px; background: ${COLORS.accent}; color: ${COLORS.primary}; 
+                                  text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                            <i class="fas fa-external-link-alt ml-2"></i>
+                            פתח PWABuilder
+                        </a>
+                    </div>
+                </div>
+            `;
+            showModal('info', instructions);
         }
 
         // הפעלה ראשונית
