@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מערכת הסעות עובדים</title>
+    <meta name="theme-color" content="#507480">
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Leaflet.js - Free OpenStreetMap integration, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,6 +16,7 @@
     <!-- EmailJS - Free email service (200 emails/month free) -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
+
         :root {
             --color-primary: #507480;        /* Main grey */
             --color-accent: #FFCA0F;         /* Yellow */
@@ -26,6 +30,12 @@
         * {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
         }
+
+        html, body {
+            overflow-x: visible;
+            overflow-y: auto;
+        }
+
         .modal-backdrop {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -37,12 +47,148 @@
         .leaflet-container {
             font-family: inherit;
         }
+
+        /* Yellow Ribbon Button - Folded Banner Style */
+        #downloadAppRibbon {
+            position: fixed;
+            top: 80px;
+            right: -120px;
+            z-index: 9999;
+            cursor: pointer;
+            transform: rotate(45deg);
+            transform-origin: center;
+            width: 550px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 19px;
+            color: #507480;
+            transition: all 0.3s ease;
+            padding: 0 25px;
+            /* Main ribbon body */
+            background: linear-gradient(135deg, #FFCA0F 0%, #FFD700 50%, #FFCA0F 100%);
+            box-shadow: 
+                0 4px 8px rgba(80, 116, 128, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(80, 116, 128, 0.2);
+            /* Create folded effect with pseudo-elements */
+            position: relative;
+            overflow: visible;
+            white-space: nowrap;
+            box-sizing: border-box;
+            /* Allow ribbon to extend beyond viewport */
+            clip-path: none;
+        }
+
+        #downloadAppRibbon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -25px;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(135deg, #3d5a68 0%, #507480 100%);
+            transform: skewY(-45deg);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: -1;
+            /* Extend beyond viewport */
+            clip-path: none;
+        }
+
+        #downloadAppRibbon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -25px;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(135deg, #507480 0%, #3d5a68 100%);
+            transform: skewY(45deg);
+            box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: -1;
+            /* Extend beyond viewport */
+            clip-path: none;
+        }
+
+        #downloadAppRibbon:hover {
+            transform: rotate(45deg) scale(1.05);
+            box-shadow: 
+                0 6px 12px rgba(80, 116, 128, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(80, 116, 128, 0.3);
+        }
+
+        #downloadAppRibbon i {
+            font-size: 21px;
+            flex-shrink: 0;
+        }
+
+        #downloadAppRibbon span {
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.8px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1024px) {
+            #downloadAppRibbon {
+                width: 300px;
+                height: 60px;
+                font-size: 17px;
+                top: 25px;
+                right: -25px;
+                padding: 0 20px;
+            }
+            
+            #downloadAppRibbon i {
+                font-size: 19px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #downloadAppRibbon {
+                width: 280px;
+                height: 55px;
+                font-size: 16px;
+                top: 20px;
+                right: -20px;
+                padding: 0 18px;
+            }
+            
+            #downloadAppRibbon i {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #downloadAppRibbon {
+                width: 250px;
+                height: 50px;
+                font-size: 14px;
+                top: 18px;
+                right: -15px;
+                padding: 0 15px;
+            }
+            
+            #downloadAppRibbon i {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Yellow Ribbon Download Button -->
+    <div id="downloadAppRibbon" onclick="handleDownloadAPK(event)" title="הורדת האפליקציה">
+        <i class="fas fa-download"></i>
+        <span>להורדת האפליקציה</span>
+    </div>
+    
     <div id="app"></div>
 
     <script>
+
         // Color Palette - Centralized color definitions
         const COLORS = {
             primary: '#507480',
@@ -80,6 +226,7 @@
 
         // נתונים
         const employees = [
+
             { id: 1, name: 'אירנה גרסיוטה', address: 'חרצית 21', city: 'מודיעין', phone: '055-66-01117', route: 'מסלול א', time: '07:12', company: 'טריילוג',  active: true },
             { id: 2, name: 'עמרי בן אליהו', address: 'עמק האלה 9', city: 'מודיעין', phone: '052-377-7468', route: 'מסלול א', time: '07:22', department: 'החזרות', active: true, username: 'בן אליהו', password: '204272645' },
             { id: 3, name: 'קסניה מורנוב', address: 'כסלו 33', city: 'מודיעין', phone: '054-223-4455', route: 'מסלול א', time: '07:27', department: 'שירות לקוחות', active: false },
@@ -92,6 +239,7 @@
         ];
 
         const drivers = [
+
             { id: 1, name: 'שמוליק', phone: '053-888-7766', route: 'מסלול א', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 4 },
             { id: 2, name: 'שמוליק', phone: '053-888-7766', route: 'מסלול ב', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 4 },
             { id: 3, name: 'רפי', phone: '052-999-8877', route: 'מסלול ג', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 0 },
@@ -101,6 +249,7 @@
         ];
 
         let currentSection = 'login';
+
         let sidebarOpen = window.innerWidth >= 1024; // Open on desktop, closed on mobile
         let modalState = { show: false, type: '', message: '', onConfirm: null, workerId: null, workerName: null, editEmployee: null, driverName: null };
         let selectedCancellationDates = new Set(); // For multi-date selection
@@ -546,6 +695,7 @@
         }
 
         function handleLogin() {
+
             const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
             
@@ -587,6 +737,7 @@
             if (employee && password === employeePassword) {
                 loggedInUserId = employee.id;
             showSection('dashboard');
+
             } else if (employee) {
                 alert('סיסמה שגויה');
             } else {
@@ -615,6 +766,7 @@
             sidebarOpen = !sidebarOpen;
             render();
         }
+
 
         // Track previous window width to detect mobile->desktop transition
         let previousWidth = window.innerWidth;
@@ -912,33 +1064,42 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         function DashboardView() {
             return `
                 <div class="space-y-6">
+
                     <h2 class="text-2xl font-bold flex items-center gap-3" style="color: ${COLORS.primary};">
                         <i class="fas fa-home" style="color: ${COLORS.primary};"></i>
                         דשבורד ראשי
                     </h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
                         <div class="rounded-xl p-6 text-white shadow-lg" style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}dd 100%);">
                             <i class="fas fa-users text-4xl mb-3 opacity-80"></i>
+
                             <p class="text-3xl font-bold">${getActiveEmployees().length}</p>
                             <p class="text-sm opacity-90">עובדים פעילים</p>
                         </div>
                         
+
                         <div class="rounded-xl p-6 text-white shadow-lg" style="background: linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.accent}dd 100%); color: ${COLORS.primary};">
                             <i class="fas fa-car text-4xl mb-3" style="opacity: 1;"></i>
                             <p class="text-3xl font-bold">${drivers.length}</p>
+
                             <p class="text-sm opacity-90">נהגים פעילים</p>
                         </div>
                         
+
                         <div class="rounded-xl p-6 text-white shadow-lg" style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}dd 100%);">
                             <i class="fas fa-route text-4xl mb-3 opacity-80"></i>
+
                             <p class="text-3xl font-bold">${getRoutes().length}</p>
                             <p class="text-sm opacity-90">מסלולים פעילים</p>
                         </div>
                         
+
                         <div class="rounded-xl p-6 text-white shadow-lg" style="background: linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.accent}dd 100%); color: ${COLORS.primary};">
                             <i class="fas fa-chart-line text-4xl mb-3 opacity-80"></i>
                             <p class="text-3xl font-bold">98%</p>
+
                             <p class="text-sm opacity-90">שביעות רצון</p>
                         </div>
                     </div>
@@ -946,13 +1107,16 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+
                                 <i class="fas fa-clock" style="color: ${COLORS.primary};"></i>
                                 נסיעות היום
                             </h3>
                             <div class="space-y-3">
                                 ${drivers.map(driver => `
+
                                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg transition hover:opacity-80" style="background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.05);">
                                         <div class="flex items-center gap-3">
+
                                             <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style="background-color: ${COLORS.primary};">
                                                 ${driver.name[0]}
                                             </div>
@@ -962,6 +1126,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
+
                                             <span class="px-3 py-1 rounded-full text-sm font-bold" style="background-color: ${COLORS.success}33; color: ${COLORS.success}; border: 1px solid ${COLORS.success}66;">פעיל</span>
                                             <span class="px-3 py-1 rounded-full text-sm" style="background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1); color: ${COLORS.primary}; border: 1px solid rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.3);">${driver.passengers} נוסעים</span>
                                         </div>
@@ -972,10 +1137,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+
                                 <i class="fas fa-bell" style="color: ${COLORS.accent};"></i>
                                 התראות ועדכונים
                             </h3>
                             <div class="space-y-3">
+
                                 ${(() => {
                                     const alerts = getAlerts();
                                     const absentWorkers = getAbsentWorkersToday();
@@ -988,6 +1155,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                 <p class="font-bold" style="color: ${COLORS.error}dd;">⚠ ${absentWorkers.join(', ')} לא יגיעו היום</p>
                                                 <p class="text-sm" style="color: ${COLORS.error}aa;">${new Date().toLocaleDateString('he-IL')}</p>
                                 </div>
+
                                         `;
                                     }
                                     
@@ -997,6 +1165,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             <div class="p-4 rounded-lg text-center text-gray-500">
                                                 <p>אין התראות חדשות</p>
                                 </div>
+
                                         `;
                                     } else {
                                         alerts.forEach(alert => {
@@ -1010,6 +1179,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                     <p class="font-bold" style="color: ${COLORS.primary}dd;">${alert.text}</p>
                                                     <p class="text-sm" style="color: ${COLORS.primary}aa;">${timeText}</p>
                                 </div>
+
                                             `;
                                         });
                                     }
@@ -1025,27 +1195,33 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function DriverView() {
             const driver = drivers[0];
+
             const routeEmployees = getActiveEmployees().filter(e => e.route === driver.route);
             
             return `
                 <div class="space-y-6">
+
                     <div class="rounded-xl p-6 text-white shadow-lg" style="background-color: ${COLORS.primary};">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-3xl font-bold mb-2">שלום ${driver.name}</h2>
+
                                 <p class="opacity-90">המסלול שלך להיום: ${driver.route}</p>
                             </div>
+
                             <i class="fas fa-car text-6xl" style="opacity: 1;"></i>
                         </div>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+
                             <i class="fas fa-users" style="color: ${COLORS.primary};"></i>
                             רשימת נוסעים (${routeEmployees.length})
                         </h3>
                         <div class="space-y-3">
                             ${routeEmployees.map((emp, index) => `
+
                                 <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg transition hover:opacity-80" style="background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.05);">
                                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold" style="background-color: ${COLORS.primary}; color: white;">
                                         ${index + 1}
@@ -1057,10 +1233,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             ${emp.address}, ${emp.city}
                                         </p>
                                     </div>
+
                                         <span class="px-3 py-1 rounded-full text-sm font-bold" style="background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1); color: ${COLORS.primary}; border: 1px solid rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.3);">
                                             <i class="fas fa-clock"></i>
                                             ${emp.time}
                                         </span>
+
                                     <a href="tel:${emp.phone}" class="w-12 h-12 rounded-full flex items-center justify-center transition shadow-md" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                             <i class="fas fa-phone"></i>
                                         </a>
@@ -1069,8 +1247,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </div>
                     </div>
 
+
                     <div class="rounded-xl p-6 shadow-lg border-2" style="background: linear-gradient(135deg, rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.08) 0%, rgba(${parseInt(COLORS.accent.slice(1, 3), 16)}, ${parseInt(COLORS.accent.slice(3, 5), 16)}, ${parseInt(COLORS.accent.slice(5, 7), 16)}, 0.12) 100%); border-color: ${COLORS.primary}66;">
                         <div class="flex items-start gap-4">
+
                             <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-md" style="background-color: ${COLORS.primary};">
                                 <i class="fas fa-lightbulb text-2xl text-white"></i>
                             </div>
@@ -1147,7 +1327,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                                     <div class="p-5" style="background-color: ${COLORS.primary};">
                                         <div class="flex items-center justify-between">
-                                            <div>
+                            <div>
+
                                                 <h3 class="text-xl font-bold" style="color: ${COLORS.accent};">${driver.name}</h3>
                                                 <p class="text-sm opacity-90" style="color: ${COLORS.accent};">${driver.route} • ${driver.vehicle}</p>
                                             </div>
@@ -1226,6 +1407,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 </div>
             `;
         }
+
 
         // פונקציות לניהול שינוי מסלול זמני (temporary route reassignment)
         function getTempRouteAssignments() {
@@ -1366,16 +1548,19 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         }
 
         function TransportManagerView() {
+
             const todayStatus = getDailyTransportationStatus();
             const hasData = todayStatus !== null;
             const tempRouteAssignments = getTempRouteAssignments();
             
             return `
+
                 <div class="space-y-4 lg:space-y-6">
                     <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                         <i class="fas fa-paper-plane text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                         שליחת סידור לנהגים
                     </h2>
+
 
                     ${!hasData ? `
                         <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
@@ -1386,6 +1571,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     ` : `
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         ${drivers.map(driver => {
+
                             // Filter employees by route (including temporary reassignments) and check if they're coming today
                             const routeEmployees = employees.filter(e => {
                                 const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
@@ -1398,12 +1584,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             
                             return `
                                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
                                     <div class="p-5" style="background-color: ${COLORS.primary};">
                                         <div class="flex items-center justify-between">
                                             <div>
+
                                                 <h3 class="text-xl font-bold" style="color: ${COLORS.accent};">${driver.name}</h3>
                                                 <p class="text-sm opacity-90" style="color: ${COLORS.accent};">${driver.route} • ${driver.vehicle}</p>
                                             </div>
+
                                             <i class="fas fa-car text-4xl" style="color: ${COLORS.accent}; opacity: 1;"></i>
                                         </div>
                                     </div>
@@ -1411,21 +1600,25 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <div class="p-5">
                                         <div class="mb-4 flex items-center justify-between">
                                             <span class="text-gray-600">נוסעים במסלול:</span>
+
                                             <span class="px-3 py-1 rounded-full font-bold" style="background-color: ${COLORS.primary}; color: white;">${comingEmployees.length}</span>
                                         </div>
 
                                         <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+
                                             ${comingEmployees.length > 0 ? comingEmployees.map(emp => `
                                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                                                     <span class="font-medium">${emp.name}</span>
                                                     <span class="text-gray-600">${emp.time}</span>
                                                 </div>
+
                                             `).join('') : `
                                                 <div class="text-center p-4 text-gray-500 text-sm">
                                                     אין נוסעים במסלול זה היום
                                                 </div>
                                             `}
                                         </div>
+
 
                                         <button onclick="showDriverMessageModal('${driver.name}')" class="w-full py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                             <i class="fas fa-paper-plane ml-2"></i>
@@ -1436,12 +1629,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             `;
                         }).join('')}
                     </div>
+
                     `}
 
                     <div class="rounded-xl p-4 lg:p-6" style="background-color: ${COLORS.bgLight}; border: 2px solid ${COLORS.primary};">
                         <div class="flex items-start gap-2 lg:gap-4">
                             <i class="fas fa-info-circle text-2xl lg:text-3xl flex-shrink-0" style="color: ${COLORS.primary};"></i>
                             <div>
+
                                 <h4 class="font-bold text-base lg:text-lg mb-1 lg:mb-2" style="color: ${COLORS.textDark};">הערות חשובות:</h4>
                                 <ul class="space-y-1 text-sm lg:text-base" style="color: ${COLORS.textDark};">
                                     <li>• כל נהג מקבל רק את המסלול שלו</li>
@@ -1457,12 +1652,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function EmployeesView() {
             return `
+
                 <div class="space-y-4 lg:space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                             <i class="fas fa-users text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                             רשימת עובדים
                         </h2>
+
                         <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
                             <button onclick="showImportFormatHelp()" class="p-2 rounded-lg transition hover:opacity-80" style="color: ${COLORS.primary}; background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1);" title="פורמט קובץ Excel">
                                 <i class="fas fa-question-circle text-lg lg:text-xl"></i>
@@ -1477,10 +1674,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <span class="hidden sm:inline">ייצוא עובדים</span>
                                 <span class="sm:hidden">ייצוא</span>
                         </button>
+
                         </div>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
                         <div class="overflow-x-auto" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             <div class="min-w-full inline-block align-middle">
                                 <table class="w-full min-w-[800px] lg:min-w-0">
@@ -1497,8 +1696,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
+
                                     ${getActiveEmployees().map(emp => `
                                         <tr class="hover:bg-gray-50 transition">
+
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 font-medium text-sm lg:text-base text-gray-800 whitespace-nowrap">${emp.name}</td>
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 text-gray-600 text-xs lg:text-sm whitespace-nowrap">${emp.company || emp.department || '-'}</td>
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 text-gray-600 text-xs lg:text-sm whitespace-nowrap">${emp.address}, ${emp.city}</td>
@@ -1508,17 +1709,20 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                     ${emp.route}
                                                 </span>
                                             </td>
+
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 text-gray-600 text-xs lg:text-base font-medium whitespace-nowrap">${emp.time}</td>
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                                                 <span class="px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-medium whitespace-nowrap inline-block" style="${emp.active ? `background-color: ${COLORS.success}33; color: ${COLORS.success}dd; border: 1px solid ${COLORS.success}66;` : `background-color: ${COLORS.error}33; color: ${COLORS.error}dd; border: 1px solid ${COLORS.error}66;`}">
                                                     ${emp.active ? 'פעיל/ה' : 'לא פעיל/ה'}
                                                 </span>
                                             </td>
+
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                                                 <div class="flex items-center gap-1 lg:gap-2">
                                                     <button onclick="handleEdit(${emp.id})" class="p-1 lg:p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.primary}; background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.05);" title="עריכה">
                                                         <i class="fas fa-edit text-sm lg:text-base"></i>
                                                     </button>
+
                                                     <button onclick="handleSelfRemoval(${emp.id}, '${emp.name.replace(/'/g, "\\'")}')" class="p-1 lg:p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.error}; background-color: ${COLORS.error}22;" title="הסרה זמנית">
                                                         <i class="fas fa-trash-alt text-sm lg:text-base"></i>
                                                     </button>
@@ -1526,6 +1730,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             </td>
                                         </tr>
                                     `).join('')}
+
                                     
                                     ${getRemovedEmployees().length > 0 ? `
                                         <tr class="bg-gray-100 border-t-4 border-gray-300">
@@ -1560,6 +1765,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     ` : ''}
                                 </tbody>
                             </table>
+
                             </div>
                         </div>
                         <div class="lg:hidden px-3 py-2 bg-gray-50 border-t border-gray-200 text-center">
@@ -1573,24 +1779,29 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             `;
         }
 
+
         function EmployeeManagementView() {
             return `
+
                 <div class="space-y-4 lg:space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                             <i class="fas fa-user-cog text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                             ניהול עובדים
                         </h2>
+
                         <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
                             <button onclick="addEmployeeModalState.show = true; render();" class="px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none text-white" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                 <i class="fas fa-plus ml-1 lg:ml-2"></i>
                                 <span class="hidden sm:inline">הוספת עובדים</span>
                                 <span class="sm:hidden">הוספה</span>
                         </button>
+
                         </div>
                     </div>
 
                         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
                         <div class="overflow-x-auto" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead style="background-color: ${COLORS.primary};">
@@ -1637,6 +1848,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             </div>
                                     </div>
                                     </div>
+
             `;
         }
 
@@ -2073,10 +2285,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             </p>
                             <p class="text-xs lg:text-sm text-gray-600 mt-1">${loc.address}</p>
                                     </div>
+
                         <button onclick="removeLocationFromRoute(${index})" class="ml-3 p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.error}; background-color: ${COLORS.error}22;">
                             <i class="fas fa-times text-sm lg:text-base"></i>
                         </button>
                                 </div>
+
                 `).join('');
             }
         }
@@ -2299,12 +2513,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             הוסף מסלול
                                 </button>
                             </div>
+
                     ${routes.length === 0 ? `
                         <div class="bg-white rounded-xl shadow-lg p-8 text-center">
                             <i class="fas fa-route text-4xl mb-4" style="color: ${COLORS.primary};"></i>
                             <p class="text-lg font-bold text-gray-600 mb-2">אין מסלולים זמינים</p>
                             <p class="text-sm text-gray-500">לחץ על "הוסף מסלול" כדי להתחיל</p>
                         </div>
+
                     ` : `
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                         ${routes.map((route, index) => {
@@ -2320,29 +2536,36 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             
                             return `
                         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
                                     <div class="p-4 lg:p-5 text-white" style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}dd 100%);">
                                         <h3 class="text-lg lg:text-xl font-bold">${route.name}</h3>
                                         <p class="text-sm lg:text-base opacity-90 mt-1">${mainCity}</p>
                             </div>
+
                                     <div class="p-4 lg:p-5">
                                         <div class="space-y-2 lg:space-y-3 mb-4">
                                     <div class="flex justify-between items-center">
+
                                                 <span class="text-gray-600 text-sm lg:text-base">נהג:</span>
                                                 <span class="font-bold text-sm lg:text-base">${route.driver || 'לא הוגדר'}</span>
                                     </div>
                                     <div class="flex justify-between items-center">
+
                                                 <span class="text-gray-600 text-sm lg:text-base">עובדים:</span>
                                                 <span class="font-bold text-sm lg:text-base">${employeeCount}</span>
                                     </div>
                                     <div class="flex justify-between items-center">
+
                                                 <span class="text-gray-600 text-sm lg:text-base">זמן יציאה:</span>
                                                 <span class="font-bold text-sm lg:text-base">${departureTime}</span>
                                     </div>
                                 </div>
+
                                         <div class="flex gap-2">
                                             <button onclick="viewFullRoute('${route.name}')" class="flex-1 py-2 lg:py-2.5 rounded-lg font-bold transition shadow-md hover:opacity-90 text-sm lg:text-base" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                     צפה במסלול המלא
                                 </button>
+
                                             <button onclick="openAddRouteModal('${route.name}')" class="px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-bold transition shadow-md hover:opacity-90 text-sm lg:text-base" style="background-color: ${COLORS.primary}; color: white;" title="ערוך מסלול">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -2352,6 +2575,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             </div>
                         </div>
                     </div>
+
                             `;
                         }).join('')}
                     </div>
@@ -2359,6 +2583,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 </div>
             `;
         }
+
 
         function generateYearDates() {
             const dates = [];
@@ -2406,6 +2631,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         }
 
         function EmployeePortalView() {
+
             if (!loggedInUserId) {
                 return '<div class="text-center p-4 lg:p-6 text-sm lg:text-base">אנא התחבר כדי לצפות בבקשות שלך</div>';
             }
@@ -2428,16 +2654,20 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 
             return `
+
                 <div class="space-y-4 lg:space-y-6">
                     <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                         <i class="fas fa-user text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                         הבקשות שלי
                     </h2>
 
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <div class="bg-white rounded-xl shadow-lg p-6">
+
                             <h3 class="text-xl font-bold mb-4 text-gray-800">בקשות</h3>
                             <div class="space-y-3">
+
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-600">שם עובד/ת:</span>
                                     <span class="font-bold">${employees.find(e => e.id === workerId)?.name || 'לא נמצא'}</span>
@@ -2452,6 +2682,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-600">נהג:</span>
+
                                     <span class="font-bold">${(() => {
                                         const employee = employees.find(e => e.id === workerId);
                                         if (employee) {
@@ -2466,6 +2697,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h3 class="text-xl font-bold mb-4 text-gray-800">ביטול הסעה</h3>
+
                             <p class="text-gray-600 mb-4 text-sm">בחר תאריכים שברצונך לבטל (ניתן לבחור מספר תאריכים):</p>
                             
                             <div class="max-h-96 overflow-y-auto border-2 border-gray-200 rounded-lg p-2 lg:p-4 mb-4" style="max-height: 400px;">
@@ -2492,13 +2724,16 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                         >
                                                             ${day}
                             </button>
+
                                                     `;
                                                 }).join('')}
                         </div>
+
                                         </div>
                                     `;
                                 }).join('')}
                     </div>
+
 
                             ${selectedCancellationDates.size > 0 ? `
                                 <div class="mb-4 p-3 rounded-lg border-2" style="background-color: ${COLORS.error}33; border-color: ${COLORS.error}66;">
@@ -2514,8 +2749,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                     <div class="rounded-xl p-6 border-2" style="background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1); border-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.3);">
                         <div class="flex items-start gap-4">
+
                             <i class="fas fa-info-circle text-3xl" style="color: ${COLORS.primary};"></i>
                             <div>
+
                                 <h4 class="font-bold text-lg mb-2" style="color: ${COLORS.primary}dd;">מידע חשוב:</h4>
                                 <ul class="space-y-1" style="color: ${COLORS.primary}aa;">
                                     <li>• ניתן לבחור מספר תאריכים ולבטל בבת אחת</li>
@@ -2529,6 +2766,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 </div>
             `;
         }
+
 
         function generateMonthlyTransportReport(year, month) {
             // Get all dates in the month
@@ -2679,6 +2917,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         }
 
         function ReportsView() {
+
             // Default to current month
             const now = new Date();
             const currentYear = now.getFullYear();
@@ -2690,11 +2929,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
             
             return `
+
                 <div class="space-y-4 lg:space-y-6">
                     <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                         <i class="fas fa-chart-bar text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                         דוחות וסטטיסטיקות
                     </h2>
+
 
                     <!-- Date Selection -->
                     <div class="bg-white rounded-xl shadow-lg p-6">
@@ -2722,14 +2963,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <!-- Statistics Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
                         <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+
                             <div class="text-4xl font-bold mb-2" style="color: ${COLORS.primary};">${reportData.totalTrips}</div>
                             <div class="text-gray-600">סה"כ נסיעות החודש</div>
                         </div>
                         <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+
                             <div class="text-4xl font-bold mb-2" style="color: ${COLORS.success};">${reportData.avgPassengersPerTrip}</div>
                             <div class="text-gray-600">ממוצע נוסעים לנסיעה</div>
                         </div>
                         <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+
                             <div class="text-3xl font-bold mb-2" style="color: ${COLORS.accent};">${reportData.mostUsedRoute}</div>
                             <div class="text-gray-600">המסלול הכי בשימוש</div>
                         </div>
@@ -2739,8 +2983,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </div>
                     </div>
 
+
                     <!-- Route Usage Details -->
                     <div class="bg-white rounded-xl shadow-lg p-6">
+
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xl font-bold text-gray-800">פירוט לפי מסלול</h3>
                             <button onclick="exportCurrentReport()" class="px-4 py-2 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white text-sm" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
@@ -2748,6 +2994,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 ייצא ל-Excel
                             </button>
                         </div>
+
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead style="background-color: ${COLORS.primary};">
@@ -2788,6 +3035,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             return `
                 <div class="min-h-screen flex items-center justify-center bg-gray-100">
                     <div class="max-w-md w-full mx-4">
+
                         <div class="rounded-xl shadow-lg overflow-hidden" style="background-color: ${COLORS.primary};">
                             <div class="w-full flex items-center justify-center gap-3 px-6 py-6" style="background-color: ${COLORS.accent};">
                                 <i class="fas fa-car text-4xl" style="color: ${COLORS.primary};"></i>
@@ -2796,22 +3044,26 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                             <form onsubmit="event.preventDefault(); handleLogin();" class="p-8 space-y-4">
                                 <div>
+
                                     <label class="block text-white font-medium mb-2">קוד משתמש (מספר עובד או שם)</label>
                                     <input type="text" id="usernameInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הכנס מספר עובד (1-7) או שם">
                                 </div>
                                 <div>
                                     <label class="block text-white font-medium mb-2">סיסמה</label>
+
                                     <div class="relative">
                                         <input type="password" id="passwordInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הכנס סיסמה (ברירת מחדל: 1234)">
                                         <button type="button" onclick="togglePasswordVisibility()" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none z-10">
                                             <i id="passwordToggleIcon" class="fas fa-eye-slash"></i>
                                         </button>
                                 </div>
+
                                 </div>
                                 <button type="submit" class="w-full py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                     התחברות
                                 </button>
                             </form>
+
 
                             <div class="mt-1 text-center">
                                 <a href="#" onclick="event.preventDefault(); openForgotPasswordModal();" class="text-white hover:opacity-80 text-sm">שכחת סיסמה?</a>
@@ -2819,6 +3071,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                             <div class="mt-6 pt-6 border-t border-white border-opacity-30 text-center">
                                 <p class="text-white text-sm mb-3 opacity-90">עדיין לא רשום?</p>
+
                                 <button onclick="openRegisterModal()" class="w-full text-white py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                     <i class="fas fa-user-plus ml-2"></i>
                                     רישום למערכת
@@ -2829,6 +3082,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 </div>
             `;
         }
+
 
         // רכיב מודאל
         function ModalComponent() {
@@ -3234,14 +3488,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         function render() {
             const menuItems = [
                 { id: 'dashboard', label: 'דשבורד', icon: 'fa-home' },
+
                 { id: 'employee-portal', label: 'הבקשות שלי', icon: 'fa-user' },
                 { id: 'employees', label: 'רשימת עובדים', icon: 'fa-users' },
+
                 { id: 'employee-management', label: 'ניהול עובדים', icon: 'fa-user-cog' },
                 { id: 'employee-arrangement', label: 'סידור עובדים', icon: 'fa-users-cog' },
                 { id: 'transport-manager', label: 'אחראי הסעות', icon: 'fa-paper-plane' },
                 { id: 'driver-view', label: 'תצוגת נהג', icon: 'fa-car' },
                 { id: 'routes', label: 'ניהול מסלולים', icon: 'fa-route' },
                 { id: 'reports', label: 'דוחות', icon: 'fa-chart-bar' },
+
                 { id: 'alerts', label: 'התראות ועדכונים', icon: 'fa-bell' },
                 { id: 'login', label: 'התחברות', icon: 'fa-sign-in-alt' }
             ];
@@ -3251,11 +3508,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 case 'dashboard': content = DashboardView(); break;
                 case 'driver-view': content = DriverView(); break;
                 case 'transport-manager': content = TransportManagerView(); break;
+
                 case 'employee-arrangement': content = EmployeeArrangementView(); break;
                 case 'employees': content = EmployeesView(); break;
+
                 case 'employee-management': content = EmployeeManagementView(); break;
                 case 'routes': content = RoutesView(); break;
                 case 'employee-portal': content = EmployeePortalView(); break;
+
                 case 'alerts': content = AlertsView(); break;
                 case 'reports': content = ReportsView(); break;
                 case 'login': content = LoginView(); break;
@@ -3265,17 +3525,21 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
+
                 document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + SMSModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
             } else {
                 document.getElementById('app').innerHTML = `
+
                     <!-- Mobile Sidebar Overlay -->
                     ${sidebarOpen ? `<div class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onclick="toggleSidebar()"></div>` : ''}
                     
                     <!-- Sidebar -->
+
                     <div class="fixed top-0 right-0 h-full bg-white shadow-2xl transition-all duration-300 z-30 ${sidebarOpen ? 'w-64' : 'w-0'} overflow-hidden flex flex-col ${sidebarOpen ? '' : 'translate-x-full'}">
                         <nav class="p-2 lg:p-4 space-y-1 flex-1 overflow-y-auto">
                             ${menuItems.filter(item => item.id !== 'login').map(item => `
                                 <button
+
                                     onclick="showSection('${item.id}'); if(window.innerWidth < 1024) { sidebarOpen = false; render(); }"
                                     class="w-full flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg transition font-bold text-sm lg:text-base text-black hover:bg-gray-50"
                                     style="${currentSection === item.id ? `background-color: rgba(80, 116, 128, 0.3);` : ''}"
@@ -3285,9 +3549,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 </button>
                             `).join('')}
                         </nav>
+
                         <div class="p-4 lg:p-6 text-white flex items-center gap-2 lg:gap-3" style="background-color: ${COLORS.primary};">
                             <i class="fas fa-building text-2xl lg:text-3xl"></i>
                             <div>
+
                                 <h1 class="text-base lg:text-xl font-bold">מערכת הסעות</h1>
                                 <p class="text-xs opacity-90">מנהל מערכת</p>
                             </div>
@@ -3295,6 +3561,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     </div>
 
                     <!-- Main Content -->
+
                     <div class="transition-all duration-300" style="margin-right: ${sidebarOpen ? '16rem' : '0'};">
                         <div class="sticky top-0 z-20 shadow-sm" style="background-color: ${COLORS.primary};">
                             <div class="px-3 lg:px-6 py-3 lg:py-4 flex justify-between items-center">
@@ -3302,10 +3569,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <button onclick="toggleSidebar()" class="p-2 hover:opacity-80 rounded-lg transition" style="color: ${COLORS.accent};">
                                         <i class="fas ${sidebarOpen ? 'fa-times' : 'fa-bars'} text-lg lg:text-xl"></i>
                                     </button>
+
                                     <h1 class="text-base lg:text-lg font-bold" style="color: ${COLORS.accent};">
                                         ${currentMenuItem ? currentMenuItem.label : ''}
                                     </h1>
                                 </div>
+
                                 <button onclick="showSection('login')" class="px-3 lg:px-4 py-2 rounded-lg font-bold text-sm lg:text-base transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                     <i class="fas fa-sign-out-alt ml-1 lg:ml-2"></i>
                                     <span class="hidden sm:inline">התנתקות</span>
@@ -3313,10 +3582,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             </div>
                         </div>
 
+
                         <div class="p-3 lg:p-6">
                             ${content}
                         </div>
                     </div>
+
                     ${ModalComponent()}
                     ${RouteModalComponent()}
                     ${RegisterModalComponent()}
@@ -4145,8 +4416,64 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             `;
         }
 
+        // PWA Installation Handling
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show custom install button if needed
+        });
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Download APK Handler
+        function handleDownloadAPK(event) {
+            // Prevent any default behavior
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // IMPORTANT: An APK is a compiled Android app that wraps your HTML.
+            // You need to BUILD it first using PWABuilder or Capacitor.
+            // This button opens PWABuilder which will generate the APK from your live website.
+            
+            // Get the live website URL (not local file://)
+            const siteUrl = EMAIL_CONFIG.baseUrl || 'https://razgabay123.github.io';
+            
+            // Open PWABuilder to build APK from your HTML app
+            // Steps: 1) Click "Build My PWA" 2) Choose "Android" 3) Download the APK
+            // Then upload that APK file to your project folder
+            const pwabuilderUrl = `https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}`;
+            
+            // Use window.location if popup is blocked, otherwise open in new tab
+            try {
+                const newWindow = window.open(pwabuilderUrl, '_blank', 'noopener,noreferrer');
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    // Popup blocked, redirect current window
+                    window.location.href = pwabuilderUrl;
+                }
+            } catch (e) {
+                // Fallback: redirect current window
+                window.location.href = pwabuilderUrl;
+            }
+        }
+
         // הפעלה ראשונית
         render();
     </script>
 </body>
+
 </html>
