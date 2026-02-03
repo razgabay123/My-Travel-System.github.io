@@ -176,6 +176,28 @@
                 font-size: 16px;
             }
         }
+
+        @media (max-width: 640px) {
+            #downloadAppRibbon {
+                transform: none;
+                top: 12px;
+                right: 12px;
+                width: auto;
+                height: auto;
+                padding: 10px 14px;
+                border-radius: 999px;
+                gap: 8px;
+            }
+
+            #downloadAppRibbon::before,
+            #downloadAppRibbon::after {
+                display: none;
+            }
+
+            #downloadAppRibbon:hover {
+                transform: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -3522,6 +3544,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
 
             const currentMenuItem = menuItems.find(item => item.id === currentSection);
+
+            const downloadRibbon = document.getElementById('downloadAppRibbon');
+            if (downloadRibbon) {
+                downloadRibbon.style.display = currentSection === 'login' ? 'flex' : 'none';
+            }
 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
