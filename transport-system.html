@@ -2930,12 +2930,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div class="flex-1">
                                 <label class="block text-gray-700 font-medium mb-2">חודש</label>
                                 <div class="relative">
-                                    <select id="reportMonth" class="w-full border-2 border-gray-300 rounded-lg p-3 pr-10 outline-none transition bg-white appearance-none" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
+                                    <select id="reportMonth" class="w-full border-2 border-gray-300 rounded-lg p-3 pl-10 outline-none transition bg-white appearance-none" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
                                         ${monthNames.map((name, idx) => `
                                             <option value="${idx + 1}" ${currentMonth === idx + 1 ? 'selected' : ''}>${name}</option>
                                         `).join('')}
                                     </select>
-                                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
                                 </div>
                             </div>
                             <div class="flex-1">
