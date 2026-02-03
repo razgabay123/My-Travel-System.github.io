@@ -54,70 +54,44 @@
         /* Yellow Ribbon Button - Folded Banner Style */
         #downloadAppRibbon {
             position: fixed;
-            top: 80px;
+            top: 16px;
             left: 50%;
             z-index: 9999;
             cursor: pointer;
-            transform: translateX(-50%) rotate(45deg);
+            transform: translateX(-50%);
             transform-origin: center;
-            width: 550px;
-            height: 100px;
+            width: auto;
+            height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: bold;
-            font-size: 19px;
+            font-size: 16px;
             color: #507480;
             transition: all 0.3s ease;
-            padding: 0 25px;
+            padding: 10px 16px;
             /* Main ribbon body */
             background: linear-gradient(135deg, #FFCA0F 0%, #FFD700 50%, #FFCA0F 100%);
             box-shadow: 
                 0 4px 8px rgba(80, 116, 128, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3),
                 inset 0 -1px 0 rgba(80, 116, 128, 0.2);
-            /* Create folded effect with pseudo-elements */
-            position: relative;
-            overflow: visible;
+            border-radius: 999px;
             white-space: nowrap;
             box-sizing: border-box;
-            /* Allow ribbon to extend beyond viewport */
-            clip-path: none;
         }
 
         #downloadAppRibbon::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -25px;
-            width: 40px;
-            height: 100%;
-            background: linear-gradient(135deg, #3d5a68 0%, #507480 100%);
-            transform: skewY(-45deg);
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: -1;
-            /* Extend beyond viewport */
-            clip-path: none;
+            display: none;
         }
 
         #downloadAppRibbon::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: -25px;
-            width: 40px;
-            height: 100%;
-            background: linear-gradient(135deg, #507480 0%, #3d5a68 100%);
-            transform: skewY(45deg);
-            box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: -1;
-            /* Extend beyond viewport */
-            clip-path: none;
+            display: none;
         }
 
         #downloadAppRibbon:hover {
-            transform: translateX(-50%) rotate(45deg) scale(1.05);
+            transform: translateX(-50%) scale(1.03);
             box-shadow: 
                 0 6px 12px rgba(80, 116, 128, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -137,12 +111,9 @@
 
         @media (max-width: 1024px) {
             #downloadAppRibbon {
-                width: 300px;
-                height: 60px;
                 font-size: 17px;
-                top: 25px;
                 left: 50%;
-                padding: 0 20px;
+                padding: 10px 16px;
             }
             
             #downloadAppRibbon i {
@@ -152,12 +123,9 @@
 
         @media (max-width: 768px) {
             #downloadAppRibbon {
-                width: 280px;
-                height: 55px;
                 font-size: 16px;
-                top: 20px;
                 left: 50%;
-                padding: 0 18px;
+                padding: 10px 16px;
             }
             
             #downloadAppRibbon i {
@@ -167,12 +135,9 @@
 
         @media (max-width: 480px) {
             #downloadAppRibbon {
-                width: 250px;
-                height: 50px;
                 font-size: 14px;
-                top: 18px;
                 left: 50%;
-                padding: 0 15px;
+                padding: 9px 14px;
             }
             
             #downloadAppRibbon i {
@@ -185,11 +150,7 @@
                 transform: translateX(-50%);
                 top: 12px;
                 left: 50%;
-                width: auto;
-                height: auto;
-                padding: 10px 14px;
-                border-radius: 999px;
-                gap: 8px;
+                padding: 9px 14px;
             }
 
             #downloadAppRibbon::before,
@@ -2956,29 +2917,39 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             return `
 
                 <div class="space-y-4 lg:space-y-6">
-                    <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
+                    <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3 justify-center sm:justify-start text-center sm:text-right">
                         <i class="fas fa-chart-bar text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
                         דוחות וסטטיסטיקות
                     </h2>
 
 
                     <!-- Date Selection -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center sm:text-right">
                         <h3 class="text-lg font-bold mb-4 text-gray-800">בחר חודש לדוח</h3>
-                        <div class="flex flex-col sm:flex-row gap-4 items-end">
+                        <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
                             <div class="flex-1">
                                 <label class="block text-gray-700 font-medium mb-2">חודש</label>
-                                <select id="reportMonth" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
-                                    ${monthNames.map((name, idx) => `
-                                        <option value="${idx + 1}" ${currentMonth === idx + 1 ? 'selected' : ''}>${name}</option>
-                                    `).join('')}
-                                </select>
+                                <div class="relative">
+                                    <select id="reportMonth" class="w-full border-2 border-gray-300 rounded-lg p-3 pr-10 outline-none transition bg-white appearance-none" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
+                                        ${monthNames.map((name, idx) => `
+                                            <option value="${idx + 1}" ${currentMonth === idx + 1 ? 'selected' : ''}>${name}</option>
+                                        `).join('')}
+                                    </select>
+                                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                                </div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-gray-700 font-medium mb-2">שנה</label>
-                                <input type="number" id="reportYear" value="${currentYear}" min="2020" max="2030" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
+                                <div class="relative">
+                                    <select id="reportYear" class="w-full border-2 border-gray-300 rounded-lg p-3 pl-10 outline-none transition bg-white appearance-none" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
+                                        ${Array.from({ length: 11 }, (_, i) => 2020 + i).map(year => `
+                                            <option value="${year}" ${currentYear === year ? 'selected' : ''}>${year}</option>
+                                        `).join('')}
+                                    </select>
+                                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                                </div>
                             </div>
-                            <button onclick="updateMonthlyReport()" class="px-6 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white whitespace-nowrap" style="background-color: ${COLORS.primary};">
+                            <button onclick="updateMonthlyReport()" class="px-6 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white whitespace-nowrap w-full sm:w-auto" style="background-color: ${COLORS.primary};">
                                 <i class="fas fa-search ml-2"></i>
                                 הצג דוח
                             </button>
@@ -3012,9 +2983,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <!-- Route Usage Details -->
                     <div class="bg-white rounded-xl shadow-lg p-6">
 
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-center sm:text-right">
                             <h3 class="text-xl font-bold text-gray-800">פירוט לפי מסלול</h3>
-                            <button onclick="exportCurrentReport()" class="px-4 py-2 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white text-sm" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
+                            <button onclick="exportCurrentReport()" class="px-4 py-2 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white text-sm w-full sm:w-auto" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                 <i class="fas fa-file-excel ml-2"></i>
                                 ייצא ל-Excel
                             </button>
