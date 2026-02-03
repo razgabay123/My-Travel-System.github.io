@@ -52,10 +52,10 @@
         #downloadAppRibbon {
             position: fixed;
             top: 80px;
-            right: -120px;
+            left: 50%;
             z-index: 9999;
             cursor: pointer;
-            transform: rotate(45deg);
+            transform: translateX(-50%) rotate(45deg);
             transform-origin: center;
             width: 550px;
             height: 100px;
@@ -114,7 +114,7 @@
         }
 
         #downloadAppRibbon:hover {
-            transform: rotate(45deg) scale(1.05);
+            transform: translateX(-50%) rotate(45deg) scale(1.05);
             box-shadow: 
                 0 6px 12px rgba(80, 116, 128, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -138,7 +138,7 @@
                 height: 60px;
                 font-size: 17px;
                 top: 25px;
-                right: -25px;
+                left: 50%;
                 padding: 0 20px;
             }
             
@@ -153,7 +153,7 @@
                 height: 55px;
                 font-size: 16px;
                 top: 20px;
-                right: -20px;
+                left: 50%;
                 padding: 0 18px;
             }
             
@@ -168,7 +168,7 @@
                 height: 50px;
                 font-size: 14px;
                 top: 18px;
-                right: -15px;
+                left: 50%;
                 padding: 0 15px;
             }
             
@@ -179,9 +179,9 @@
 
         @media (max-width: 640px) {
             #downloadAppRibbon {
-                transform: none;
+                transform: translateX(-50%);
                 top: 12px;
-                right: 12px;
+                left: 50%;
                 width: auto;
                 height: auto;
                 padding: 10px 14px;
@@ -195,7 +195,7 @@
             }
 
             #downloadAppRibbon:hover {
-                transform: none;
+                transform: translateX(-50%);
             }
         }
     </style>
@@ -203,7 +203,7 @@
 <body class="bg-gray-100">
     <!-- Yellow Ribbon Download Button -->
     <div id="downloadAppRibbon" onclick="handleDownloadAPK(event)" title="הורדת האפליקציה">
-        <i class="fas fa-download"></i>
+        <i class="fas fa-car"></i>
         <span>להורדת האפליקציה</span>
     </div>
     
