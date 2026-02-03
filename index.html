@@ -4474,7 +4474,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
             
             // Check if APK exists first
-            const apkUrl = '/מערכת הסעות.apk';
+            const apkUrl = '/transport-system.apk';
             
             // Try to fetch the APK to see if it exists
             fetch(apkUrl, { method: 'HEAD' })
@@ -4483,7 +4483,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         // APK exists - download it directly
                         const link = document.createElement('a');
                         link.href = apkUrl;
-                        link.download = 'מערכת הסעות.apk';
+                        link.download = 'transport-system.apk';
                         link.style.display = 'none';
                         document.body.appendChild(link);
                         link.click();
@@ -4538,14 +4538,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <li>פתח את קובץ ה-ZIP שהורדת</li>
                             <li>חפש בתוך התיקייה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">.apk</code></li>
                             <li>הוצא את קובץ ה-APK מהתיקייה</li>
-                            <li>שנה את שמו ל-<code style="background: white; padding: 2px 6px; border-radius: 4px;">מערכת הסעות.apk</code></li>
+                            <li>שנה את שמו ל-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code></li>
                         </ol>
                         
                         <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
                             שלב 4: העלה את הקובץ
                         </p>
                         <p>
-                            העלה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">מערכת הסעות.apk</code> לתיקיית הפרויקט ב-GitHub (אותה תיקייה שבה נמצא transport-system.html).
+                            העלה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code> לתיקיית הפרויקט ב-GitHub (אותה תיקייה שבה נמצא transport-system.html).
                         </p>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
