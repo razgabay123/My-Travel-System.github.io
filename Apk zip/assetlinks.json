@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.razgabay123.twa",
+        "sha256_cert_fingerprints": ["7F:42:90:FC:36:AF:DC:CB:A7:7F:80:00:92:75:78:01:70:65:9E:44:90:7F:62:D1:34:0C:B8:FA:0C:7D:A5:5C"]
+      }
+    }]
