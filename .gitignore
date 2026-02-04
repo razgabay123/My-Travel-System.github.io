@@ -6,6 +6,7 @@ package-lock.json
 android/
 *.apk
 *.aab
+*.zip
 
 # IDE
 .idea/
