@@ -82,8 +82,13 @@
             box-sizing: border-box;
         }
 
-        body.login-active {
-            padding-top: 80px;
+        body.login-screen {
+            overflow: hidden;
+        }
+
+        body.login-screen #downloadAppRibbon {
+            top: auto;
+            bottom: 16px;
         }
 
         #downloadAppRibbon::before {
@@ -3542,9 +3547,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
 
             if (currentSection === 'login') {
-                document.body.classList.add('login-active');
+                document.body.classList.add('login-screen');
             } else {
-                document.body.classList.remove('login-active');
+                document.body.classList.remove('login-screen');
             }
 
             // If login screen, show only login view without sidebar/header
