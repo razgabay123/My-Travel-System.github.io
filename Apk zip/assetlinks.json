@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.razgabay123.twa",
-        "sha256_cert_fingerprints": ["87:C0:6E:96:8E:1E:09:97:3F:26:2F:FF:69:A4:FA:BD:55:E8:47:D6:B8:AC:27:38:6B:DA:D3:AD:4E:2B:F7:2D"]
+        "sha256_cert_fingerprints": ["00:EA:CD:62:25:E4:75:ED:2E:2D:C9:BD:C8:90:32:3F:B0:30:67:ED:C1:61:59:D1:E8:0B:5D:90:44:95:ED:DF"]
       }
     }]
