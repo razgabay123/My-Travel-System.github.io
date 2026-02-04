@@ -3524,8 +3524,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const currentMenuItem = menuItems.find(item => item.id === currentSection);
 
             const downloadRibbon = document.getElementById('downloadAppRibbon');
+            const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
             if (downloadRibbon) {
-                downloadRibbon.style.display = currentSection === 'login' ? 'flex' : 'none';
+                downloadRibbon.style.display = currentSection === 'login' && !isNativeApp ? 'flex' : 'none';
             }
 
             if (currentSection === 'login') {
