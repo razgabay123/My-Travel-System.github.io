@@ -3524,7 +3524,19 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const currentMenuItem = menuItems.find(item => item.id === currentSection);
 
             const downloadRibbon = document.getElementById('downloadAppRibbon');
-            const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            const ua = navigator.userAgent || '';
+            const isCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            const isWebViewAndroid = /Android/.test(ua) && /wv/.test(ua);
+            const isWebViewIOS = /iPhone|iPad|iPod/.test(ua) && !/Safari/.test(ua);
+            const isFileProtocol = window.location && window.location.protocol === 'file:';
+            const isCapacitorProtocol = window.location && window.location.protocol === 'capacitor:';
+            const isStandaloneDisplay = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+            const isFullscreenDisplay = window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches;
+            const isMinimalUiDisplay = window.matchMedia && window.matchMedia('(display-mode: minimal-ui)').matches;
+            const isStandaloneIOS = window.navigator && window.navigator.standalone === true;
+            const urlParams = new URLSearchParams(window.location ? window.location.search : '');
+            const hideDownloadParam = urlParams.get('hideDownload') === '1';
+            const isNativeApp = isCapacitor || isWebViewAndroid || isWebViewIOS || isFileProtocol || isCapacitorProtocol || isStandaloneDisplay || isFullscreenDisplay || isMinimalUiDisplay || isStandaloneIOS || hideDownloadParam;
             if (downloadRibbon) {
                 downloadRibbon.style.display = currentSection === 'login' && !isNativeApp ? 'flex' : 'none';
             }
