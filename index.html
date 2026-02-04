@@ -56,7 +56,7 @@
             position: fixed;
             top: 16px;
             left: 50%;
-            z-index: 9999;
+            z-index: 40;
             cursor: pointer;
             transform: translateX(-50%);
             transform-origin: center;
@@ -80,6 +80,10 @@
             border-radius: 999px;
             white-space: nowrap;
             box-sizing: border-box;
+        }
+
+        body.login-active {
+            padding-top: 80px;
         }
 
         #downloadAppRibbon::before {
@@ -3522,6 +3526,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const downloadRibbon = document.getElementById('downloadAppRibbon');
             if (downloadRibbon) {
                 downloadRibbon.style.display = currentSection === 'login' ? 'flex' : 'none';
+            }
+
+            if (currentSection === 'login') {
+                document.body.classList.add('login-active');
+            } else {
+                document.body.classList.remove('login-active');
             }
 
             // If login screen, show only login view without sidebar/header
