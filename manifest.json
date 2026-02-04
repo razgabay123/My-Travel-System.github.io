@@ -1,7 +1,7 @@
 {
-  "name": "מערכת הסעות עובדים",
-  "short_name": "הסעות",
-  "description": "מערכת ניהול הסעות עובדים",
+  "name": "my_transport_system",
+  "short_name": "transport_system",
+  "description": "מערכת הסעות עובדים",
   "start_url": "/transport-system.html?hideDownload=1",
   "display": "standalone",
   "background_color": "#ffffff",
