@@ -2,7 +2,7 @@
   "name": "מערכת הסעות עובדים",
   "short_name": "הסעות",
   "description": "מערכת ניהול הסעות עובדים",
-  "start_url": "/transport-system.html",
+  "start_url": "/transport-system.html?hideDownload=1",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#507480",
