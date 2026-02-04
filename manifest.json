@@ -1,6 +1,6 @@
 {
-  "name": "my_transport_system",
-  "short_name": "transport_system",
+  "name": "my transport system",
+  "short_name": "transport system",
   "description": "מערכת הסעות עובדים",
   "start_url": "/transport-system.html?hideDownload=1",
   "display": "standalone",

@@ -82,13 +82,14 @@
             box-sizing: border-box;
         }
 
+        html.login-screen,
         body.login-screen {
             overflow: hidden;
         }
 
-        body.login-screen #downloadAppRibbon {
-            top: auto;
-            bottom: 16px;
+        body.login-screen #app {
+            height: 100vh;
+            overflow: hidden;
         }
 
         #downloadAppRibbon::before {
@@ -3547,8 +3548,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
 
             if (currentSection === 'login') {
+                document.documentElement.classList.add('login-screen');
                 document.body.classList.add('login-screen');
             } else {
+                document.documentElement.classList.remove('login-screen');
                 document.body.classList.remove('login-screen');
             }
 
