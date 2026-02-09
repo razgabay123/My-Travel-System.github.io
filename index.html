@@ -5,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Travel System</title>
     <meta name="theme-color" content="#507480">
+
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Travel System">
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=3">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-192.png?v=3">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192.png?v=3">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192.png?v=3">
+
+    <!-- Standard Icons -->
     <link rel="icon" type="image/svg+xml" href="car.svg?v=2">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=2">
-    <link rel="manifest" href="manifest.json?v=3">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=3">
+    <link rel="manifest" href="manifest.json?v=4">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -220,29 +231,46 @@
             apiEndpoint: 'https://your-backend-url.com/api/send-sms',
         };
 
-        // נתונים
-        const employees = [
+        // Backend API Configuration
+        const API_CONFIG = {
+            baseUrl: 'http://localhost:3000/api'
+        };
 
-            { id: 1, name: 'אירנה גרסיוטה', address: 'חרצית 21', city: 'מודיעין', phone: '055-66-01117', route: 'מסלול א', time: '07:12', company: 'טריילוג',  active: true },
-            { id: 2, name: 'עמרי בן אליהו', address: 'עמק האלה 9', city: 'מודיעין', phone: '052-377-7468', route: 'מסלול א', time: '07:22', department: 'החזרות', active: true, username: 'בן אליהו', password: '204272645' },
-            { id: 3, name: 'קסניה מורנוב', address: 'כסלו 33', city: 'מודיעין', phone: '054-223-4455', route: 'מסלול א', time: '07:27', department: 'שירות לקוחות', active: false },
-            { id: 4, name: 'שמואל אלטרס', address: 'חטיבת אלכסנדרוני 3', city: 'מודיעין', phone: '053-998-7766', route: 'מסלול ב', time: '07:31', department: 'הפצה', active: true },
-            { id: 5, name: 'שובל בן הרוש', address: 'ירח אב 9', city: 'מודיעין', phone: '050-778-8990', route: 'מסלול א', time: '07:45', department: 'הפצה', active: true },
-            { id: 6, name: "מרום בן יתח", address: "יגאל ידין 3", city: "מודיעין", phone: "050-986-0774", route: "מסלול ב", time: "07:15", department: 'הפצה', active: true },
-            { id: 7, name: "אופק דרעי", address: "הפיקוס 6", city: "מודיעין", phone: "052-668-1853", route: "מסלול ב", time: "07:15", department: 'הפצה', active: true },
-            { id: 8, name: "אביבה", address: "סלעית 9", city: "מודיעין", phone: "", route: "מסלול א", time: "07:00", active: true, department: 'כספים' },
-            { id: 9, name: "אור נהוראי", address: "חטיבת אלכסנדרוני 3", city: "מודיעין", phone: "054-423-8314", route: "מסלול ב", time: "07:00", active: true, department: 'הפצה' }
-        ];
+        // נתונים - Load from backend API
+        let employees = [];
+        let drivers = [];
 
-        const drivers = [
+        // Load workers data from backend API
+        async function loadWorkersData() {
+            try {
+                // Fetch employees
+                const empResponse = await fetch(`${API_CONFIG.baseUrl}/employees`);
+                if (!empResponse.ok) throw new Error('Failed to fetch employees');
+                const empData = await empResponse.json();
+                employees = empData.employees || [];
 
-            { id: 1, name: 'שמוליק', phone: '053-888-7766', route: 'מסלול א', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 4 },
-            { id: 2, name: 'שמוליק', phone: '053-888-7766', route: 'מסלול ב', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 4 },
-            { id: 3, name: 'רפי', phone: '052-999-8877', route: 'מסלול ג', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 0 },
-            { id: 4, name: 'אורי', phone: '054-777-6655', route: 'מסלול ד', city: 'מודיעין', vehicle: 'פולקסווגן קראפטר', passengers: 0 },
-            { id: 5, name: 'רמי', phone: '050-111-2233', route: 'מסלול ה', city: 'מודיעין', vehicle: 'פולקסווגן קראפטר', passengers: 0 },
-            { id: 6, name: 'בצלאל', phone: '052-444-5566', route: 'מסלול ו', city: 'מודיעין', vehicle: 'מרצדס ספרינטר', passengers: 0 }
-        ];
+                // Fetch drivers
+                const driverResponse = await fetch(`${API_CONFIG.baseUrl}/drivers`);
+                if (!driverResponse.ok) throw new Error('Failed to fetch drivers');
+                const driverData = await driverResponse.json();
+                drivers = driverData.drivers || [];
+
+                console.log('Workers data loaded from API:', employees.length, 'employees,', drivers.length, 'drivers');
+                return true;
+            } catch (error) {
+                console.error('Error loading workers data from API:', error);
+                alert('שגיאה בטעינת נתוני עובדים. ודא שהשרת פועל (npm start בתיקיית backend).');
+                return false;
+            }
+        }
+
+        // Load from localStorage if available (for offline support)
+        function loadFromLocalStorage() {
+            const storedEmployees = localStorage.getItem('employees');
+            const storedDrivers = localStorage.getItem('drivers');
+            if (storedEmployees) employees = JSON.parse(storedEmployees);
+            if (storedDrivers) drivers = JSON.parse(storedDrivers);
+        }
 
         let currentSection = 'login';
 
@@ -334,10 +362,10 @@
         // Save employees to localStorage
         function saveEmployees() {
             localStorage.setItem('employees', JSON.stringify(employees));
+            localStorage.setItem('drivers', JSON.stringify(drivers));
         }
 
-        // Initialize: load saved employees
-        loadEmployees();
+        // Note: Initialization moved to initApp() function at the bottom
 
         // פונקציות לניהול הסרה עצמית (same-day removal)
         function getRemovedWorkers() {
@@ -690,54 +718,55 @@
             render();
         }
 
-        function handleLogin() {
-
+        async function handleLogin() {
             const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
-            
+
             if (!usernameInput || !passwordInput) {
                 alert('שגיאה בטעינת הטופס');
                 return;
             }
-            
+
             const username = usernameInput.value.trim();
             const password = passwordInput.value.trim();
-            
+
             if (!username || !password) {
                 alert('אנא מלא את כל השדות');
                 return;
             }
-            
-            // Try to find employee by ID (if username is a number)
-            let employee = null;
-            const userId = parseInt(username);
-            
-            if (!isNaN(userId)) {
-                // Username is a number - search by ID, but only if employee doesn't have custom username
-                // (employees with custom username must use their username, not ID)
-                employee = employees.find(e => e.id === userId && !e.username);
-            } else {
-                // Username is text - search by username field first, then by name
-                const usernameLower = username.toLowerCase().trim();
-                employee = employees.find(e => 
-                    (e.username && e.username.toLowerCase().trim() === usernameLower) ||
-                    e.name.toLowerCase().includes(usernameLower) ||
-                    e.name.toLowerCase() === usernameLower
-                );
-            }
-            
-            // Check password - use individual password if exists, otherwise default
-            const defaultPassword = '1234';
-            const employeePassword = employee?.password || defaultPassword;
-            
-            if (employee && password === employeePassword) {
-                loggedInUserId = employee.id;
-            showSection('dashboard');
 
-            } else if (employee) {
-                alert('סיסמה שגויה');
-            } else {
-                alert('עובד לא נמצא. נסה להכניס מספר עובד (1-7), שם עובד, או שם משתמש');
+            try {
+                // Call backend login API
+                const response = await fetch(`${API_CONFIG.baseUrl}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Login successful
+                    loggedInUserId = data.employee.id;
+
+                    // Update local employees array with logged in employee data
+                    const empIndex = employees.findIndex(e => e.id === data.employee.id);
+                    if (empIndex >= 0) {
+                        employees[empIndex] = { ...employees[empIndex], ...data.employee };
+                    }
+
+                    showSection('dashboard');
+                } else {
+                    // Login failed
+                    alert(data.error === 'Invalid credentials' ?
+                        'שם משתמש או סיסמה שגויים' :
+                        'שגיאה בהתחברות. נסה שוב.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('שגיאה בהתחברות לשרת. ודא שהשרת פועל.');
             }
         }
 
@@ -4048,7 +4077,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         // Delete user function
 
-        function resetPassword() {
+        async function resetPassword() {
             const newPassword = document.getElementById('newPassword')?.value.trim();
             const confirmNewPassword = document.getElementById('confirmNewPassword')?.value.trim();
 
@@ -4063,12 +4092,30 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
 
             if (forgotPasswordModalState.verifiedEmployee) {
-                const empIndex = employees.findIndex(e => e.id === forgotPasswordModalState.verifiedEmployee.id);
-                if (empIndex !== -1) {
-                    employees[empIndex].password = newPassword;
-                    saveEmployees();
-                    alert('הסיסמה עודכנה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה');
-                    closeForgotPasswordModal();
+                try {
+                    // Call backend to change password
+                    const response = await fetch(`${API_CONFIG.baseUrl}/auth/change-password`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            employeeId: forgotPasswordModalState.verifiedEmployee.id,
+                            newPassword: newPassword
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        alert('הסיסמה עודכנה בהצלחה במסד הנתונים! כעת תוכל להתחבר עם הסיסמה החדשה');
+                        closeForgotPasswordModal();
+                    } else {
+                        alert('שגיאה בעדכון הסיסמה. נסה שוב.');
+                    }
+                } catch (error) {
+                    console.error('Password reset error:', error);
+                    alert('שגיאה בחיבור לשרת. ודא שהשרת פועל.');
                 }
             }
         }
@@ -4566,8 +4613,23 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             showModal('info', instructions);
         }
 
-        // הפעלה ראשונית
-        render();
+        // הפעלה ראשונית - Load data then render
+        async function initApp() {
+            // Try to load from localStorage first (for offline support)
+            loadFromLocalStorage();
+
+            // Then load fresh data from JSON
+            await loadWorkersData();
+
+            // Save to localStorage for offline access
+            saveEmployees();
+
+            // Now render the app
+            render();
+        }
+
+        // Start the app
+        initApp();
     </script>
 </body>
 

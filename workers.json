@@ -1,0 +1,177 @@
+{
+  "employees": [
+    {
+      "id": 1,
+      "name": "אירנה גרסיוטה",
+      "address": "חרצית 21",
+      "city": "מודיעין",
+      "phone": "055-66-01117",
+      "route": "מסלול א",
+      "time": "07:12",
+      "company": "טריילוג",
+      "active": true,
+      "username": "גרסיוטה",
+      "password": "1234"
+    },
+    {
+      "id": 2,
+      "name": "עמרי בן אליהו",
+      "address": "עמק האלה 9",
+      "city": "מודיעין",
+      "phone": "052-377-7468",
+      "route": "מסלול א",
+      "time": "07:22",
+      "department": "החזרות",
+      "active": true,
+      "username": "בן אליהו",
+      "password": "204272645"
+    },
+    {
+      "id": 3,
+      "name": "קסניה מורנוב",
+      "address": "כסלו 33",
+      "city": "מודיעין",
+      "phone": "054-223-4455",
+      "route": "מסלול א",
+      "time": "07:27",
+      "department": "שירות לקוחות",
+      "active": false,
+      "username": "מורנוב",
+      "password": "1234"
+    },
+    {
+      "id": 4,
+      "name": "שמואל אלטרס",
+      "address": "חטיבת אלכסנדרוני 3",
+      "city": "מודיעין",
+      "phone": "053-998-7766",
+      "route": "מסלול ב",
+      "time": "07:31",
+      "department": "הפצה",
+      "active": true,
+      "username": "אלטרס",
+      "password": "1234"
+    },
+    {
+      "id": 5,
+      "name": "שובל בן הרוש",
+      "address": "ירח אב 9",
+      "city": "מודיעין",
+      "phone": "050-778-8990",
+      "route": "מסלול א",
+      "time": "07:45",
+      "department": "הפצה",
+      "active": true,
+      "username": "בן הרוש",
+      "password": "1234"
+    },
+    {
+      "id": 6,
+      "name": "מרום בן יתח",
+      "address": "יגאל ידין 3",
+      "city": "מודיעין",
+      "phone": "050-986-0774",
+      "route": "מסלול ב",
+      "time": "07:15",
+      "department": "הפצה",
+      "active": true,
+      "username": "בן יתח",
+      "password": "1234"
+    },
+    {
+      "id": 7,
+      "name": "אופק דרעי",
+      "address": "הפיקוס 6",
+      "city": "מודיעין",
+      "phone": "052-668-1853",
+      "route": "מסלול ב",
+      "time": "07:15",
+      "department": "הפצה",
+      "active": true,
+      "username": "דרעי",
+      "password": "1234"
+    },
+    {
+      "id": 8,
+      "name": "אביבה",
+      "address": "סלעית 9",
+      "city": "מודיעין",
+      "phone": "",
+      "route": "מסלול א",
+      "time": "07:00",
+      "active": true,
+      "department": "כספים",
+      "username": "אביבה",
+      "password": "1234"
+    },
+    {
+      "id": 9,
+      "name": "אור נהוראי",
+      "address": "חטיבת אלכסנדרוני 3",
+      "city": "מודיעין",
+      "phone": "054-423-8314",
+      "route": "מסלול ב",
+      "time": "07:00",
+      "active": true,
+      "department": "הפצה",
+      "username": "נהוראי",
+      "password": "1234"
+    }
+  ],
+  "drivers": [
+    {
+      "id": 1,
+      "name": "שמוליק",
+      "phone": "053-888-7766",
+      "route": "מסלול א",
+      "city": "מודיעין",
+      "vehicle": "מרצדס ספרינטר",
+      "passengers": 4
+    },
+    {
+      "id": 2,
+      "name": "שמוליק",
+      "phone": "053-888-7766",
+      "route": "מסלול ב",
+      "city": "מודיעין",
+      "vehicle": "מרצדס ספרינטר",
+      "passengers": 4
+    },
+    {
+      "id": 3,
+      "name": "רפי",
+      "phone": "052-999-8877",
+      "route": "מסלול ג",
+      "city": "מודיעין",
+      "vehicle": "מרצדס ספרינטר",
+      "passengers": 0
+    },
+    {
+      "id": 4,
+      "name": "אורי",
+      "phone": "054-777-6655",
+      "route": "מסלול ד",
+      "city": "מודיעין",
+      "vehicle": "פולקסווגן קראפטר",
+      "passengers": 0
+    },
+    {
+      "id": 5,
+      "name": "רמי",
+      "phone": "050-111-2233",
+      "route": "מסלול ה",
+      "city": "מודיעין",
+      "vehicle": "פולקסווגן קראפטר",
+      "passengers": 0
+    },
+    {
+      "id": 6,
+      "name": "בצלאל",
+      "phone": "052-444-5566",
+      "route": "מסלול ו",
+      "city": "מודיעין",
+      "vehicle": "מרצדס ספרינטר",
+      "passengers": 0
+    }
+  ]
+}
