@@ -37,6 +37,7 @@ async function initDatabase() {
             time TEXT,
             department TEXT,
             company TEXT,
+            email TEXT,
             active INTEGER DEFAULT 1,
             createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
             updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
@@ -103,8 +104,8 @@ const employeeQueries = {
 
     create: (employee) => {
         db.run(`
-            INSERT INTO employees (workerCode, username, password, name, address, city, phone, route, time, department, company, active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO employees (workerCode, username, password, name, address, city, phone, route, time, department, company, email, active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             employee.workerCode || null,
             employee.username,
@@ -117,6 +118,7 @@ const employeeQueries = {
             employee.time || null,
             employee.department || null,
             employee.company || null,
+            employee.email || null,
             employee.active !== undefined ? employee.active : 1
         ]);
         saveDatabase();
@@ -139,6 +141,7 @@ const employeeQueries = {
                 time = ?,
                 department = ?,
                 company = ?,
+                email = ?,
                 active = ?,
                 updatedAt = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -153,6 +156,7 @@ const employeeQueries = {
             employee.time || null,
             employee.department || null,
             employee.company || null,
+            employee.email || null,
             employee.active !== undefined ? employee.active : 1,
             employee.id
         ]);

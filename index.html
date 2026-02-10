@@ -1911,7 +1911,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             });
         }
 
-        function saveNewEmployee() {
+        async function saveNewEmployee() {
             const name = document.getElementById('newEmployeeName').value.trim();
             const department = document.getElementById('newEmployeeDepartment').value.trim();
             const address = document.getElementById('newEmployeeAddress').value.trim();
@@ -1969,28 +1969,42 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // Generate new ID
             const newId = employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1;
             
-            // Create new employee
-            const newEmployee = {
-                id: newId,
-                name: name,
-                department: department,
-                company: department,
-                address: address,
-                city: city,
-                phone: phone,
-                email: email,
-                route: route,
-                time: time,
-                active: true,
-                username: username,
-                password: password
-            };
-            
-            employees.push(newEmployee);
-            saveEmployees();
-            addEmployeeModalState.show = false;
-            render();
-            showModal('success', 'העובד נוסף בהצלחה!');
+            // Create new employee via backend API
+            try {
+                const response = await fetch(`${API_CONFIG.baseUrl}/employees`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username, password, name, department,
+                        company: department, address, city, phone,
+                        email: email || null, route, time, active: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Add to local array for immediate UI update
+                    employees.push({
+                        id: data.id,
+                        name, department, company: department,
+                        address, city, phone, email, route, time,
+                        active: true, username
+                    });
+
+                    addEmployeeModalState.show = false;
+                    render();
+                    showModal('success', 'העובד נוסף בהצלחה למסד הנתונים!');
+                } else {
+                    showModal('error', data.error === 'Username or worker code already exists' ?
+                        'שם משתמש זה כבר קיים' : 'שגיאה בהוספת עובד. נסה שוב.');
+                }
+            } catch (error) {
+                console.error('Add employee error:', error);
+                showModal('error', 'שגיאה בחיבור לשרת. ודא שהשרת פועל.');
+            }
         }
 
         // Route management functions
@@ -3715,7 +3729,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             render();
         }
 
-        function handleRegister() {
+        async function handleRegister() {
             const name = document.getElementById('registerName')?.value.trim();
             const phone = document.getElementById('registerPhone')?.value.trim();
             const email = document.getElementById('registerEmail')?.value.trim();
@@ -3744,42 +3758,48 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 return;
             }
 
-            // Check if username already exists
-            if (employees.some(e => e.username === username)) {
-                alert('שם משתמש זה כבר קיים');
-                return;
+            try {
+                // Register via backend API
+                const response = await fetch(`${API_CONFIG.baseUrl}/employees`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        name,
+                        phone,
+                        email: email || null,
+                        address,
+                        city,
+                        route,
+                        time,
+                        department,
+                        active: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Add to local array too (so UI updates immediately)
+                    employees.push({
+                        id: data.id,
+                        name, phone, email: email || '', address, city,
+                        route, time, department, username, active: true
+                    });
+
+                    alert('ההרשמה בוצעה בהצלחה! כעת תוכל להתחבר');
+                    closeRegisterModal();
+                } else {
+                    alert(data.error === 'Username or worker code already exists' ?
+                        'שם משתמש זה כבר קיים' : 'שגיאה בהרשמה. נסה שוב.');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('שגיאה בחיבור לשרת. ודא שהשרת פועל.');
             }
-
-            // Check if email already exists (if provided)
-            if (email && employees.some(e => e.email && e.email.toLowerCase() === email.toLowerCase())) {
-                alert('כתובת אימייל זו כבר קיימת במערכת');
-                return;
-            }
-
-            // Find next available ID
-            const nextId = Math.max(...employees.map(e => e.id), 0) + 1;
-
-            // Create new employee
-            const newEmployee = {
-                id: nextId,
-                name: name,
-                phone: phone,
-                email: email || '',
-                address: address,
-                city: city,
-                route: route,
-                time: time,
-                department: department,
-                username: username,
-                password: password,
-                active: true
-            };
-
-            employees.push(newEmployee);
-            saveEmployees();
-            
-            alert('ההרשמה בוצעה בהצלחה! כעת תוכל להתחבר');
-            closeRegisterModal();
         }
 
         // Forgot Password Modal Functions

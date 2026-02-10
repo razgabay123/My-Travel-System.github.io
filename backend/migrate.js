@@ -52,6 +52,7 @@ async function migrate() {
                 time: emp.time || null,
                 department: emp.department || null,
                 company: emp.company || null,
+                email: emp.email || null,
                 active: emp.active !== undefined ? emp.active : 1
             });
 

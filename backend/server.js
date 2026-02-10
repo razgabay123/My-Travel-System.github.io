@@ -126,7 +126,7 @@ app.get('/api/employees/:id', (req, res) => {
 // Create employee
 app.post('/api/employees', async (req, res) => {
     try {
-        const { workerCode, username, password, name, address, city, phone, route, time, department, company, active } = req.body;
+        const { workerCode, username, password, name, address, city, phone, route, time, department, company, email, active } = req.body;
 
         if (!username || !password || !name) {
             return res.status(400).json({ error: 'Username, password, and name are required' });
@@ -148,6 +148,7 @@ app.post('/api/employees', async (req, res) => {
             time: time || null,
             department: department || null,
             company: company || null,
+            email: email || null,
             active: active !== undefined ? active : 1
         });
 
@@ -164,7 +165,7 @@ app.post('/api/employees', async (req, res) => {
 // Update employee
 app.put('/api/employees/:id', (req, res) => {
     try {
-        const { workerCode, username, name, address, city, phone, route, time, department, company, active } = req.body;
+        const { workerCode, username, name, address, city, phone, route, time, department, company, email, active } = req.body;
 
         if (!username || !name) {
             return res.status(400).json({ error: 'Username and name are required' });
@@ -183,6 +184,7 @@ app.put('/api/employees/:id', (req, res) => {
             time: time || null,
             department: department || null,
             company: company || null,
+            email: email || null,
             active: active !== undefined ? active : 1
         });
 
