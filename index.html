@@ -207,7 +207,7 @@
             modalBackdrop: 'rgba(80, 116, 128, 0.7)'
         };
 
-        // Email Configuration - FREE alternative to SMS!
+        // Email Configuration
         // Using EmailJS (https://www.emailjs.com) - Free tier: 200 emails/month
         // 
         // SETUP INSTRUCTIONS (5 minutes):
@@ -223,12 +223,6 @@
             templateId: 'template_g0fjesl', // From EmailJS dashboard
             publicKey: 'wqjXHpEuuQHKdV0PB', // From EmailJS dashboard
             baseUrl: 'https://razgabay123.github.io' // GitHub Pages URL
-        };
-
-        // SMS API Configuration (Optional - costs money)
-        const SMS_CONFIG = {
-            enabled: false,
-            apiEndpoint: 'https://your-backend-url.com/api/send-sms',
         };
 
         // Backend API Configuration
@@ -282,7 +276,6 @@
         let isGeocoding = false; // Prevent multiple simultaneous geocoding requests
         let registerModalState = { show: false };
         let forgotPasswordModalState = { show: false, step: 'verify', verifiedEmployee: null }; // step: 'verify' or 'reset'
-        let smsModalState = { show: false, employee: null, verificationToken: null };
         let alertsModalState = { show: false };
         let addEmployeeModalState = { show: false };
 
@@ -1666,7 +1659,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <ul class="space-y-1 text-sm lg:text-base" style="color: ${COLORS.textDark};">
                                     <li>• כל נהג מקבל רק את המסלול שלו</li>
                                     <li>• הסידור כולל שמות, כתובות ומספרי טלפון</li>
-                                    <li>• הנהגים מקבלים SMS לנייד</li>
+                                    <li>• הנהגים מקבלים עדכונים</li>
                                 </ul>
                             </div>
                         </div>
@@ -2796,7 +2789,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <ul class="space-y-1" style="color: ${COLORS.primary}aa;">
                                     <li>• ניתן לבחור מספר תאריכים ולבטל בבת אחת</li>
                                     <li>• תאריכים שכבר בוטלו מסומנים באפור</li>
-                                    <li>• עדכונים על המסלול יישלחו ב-SMS</li>
+                                    <li>• עדכונים על המסלול יישלחו באימייל</li>
                                     <li>• שאלות? צרו קשר עם מחלקת ההסעות</li>
                                 </ul>
                             </div>
@@ -3601,7 +3594,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
 
-                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + SMSModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
+                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
             } else {
                 document.getElementById('app').innerHTML = `
 
@@ -3667,56 +3660,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     ${RouteModalComponent()}
                     ${RegisterModalComponent()}
                     ${ForgotPasswordModalComponent()}
-                    ${SMSModalComponent()}
                     ${AlertsModalComponent()}
                     ${AddEmployeeModalComponent()}
                 `;
             }
         }
 
-        function SMSModalComponent() {
-            if (!smsModalState.show || !smsModalState.employee) return '';
-
-            const smsStatus = SMS_CONFIG.enabled ? 'נשלח' : 'סימולציה';
-            const smsStatusColor = SMS_CONFIG.enabled ? COLORS.success : COLORS.accent;
-
-            return `
-                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};">
-                    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4" onclick="event.stopPropagation()">
-                        <div class="p-6 lg:p-8">
-                            <div class="text-center mb-6">
-                                <i class="fas fa-sms text-5xl mb-4" style="color: ${COLORS.primary};"></i>
-                                <h3 class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">הודעת SMS</h3>
-                                <p class="text-gray-600 text-sm mb-2">הודעה ${smsStatus} ל-${smsModalState.employee.phone}</p>
-                                ${!SMS_CONFIG.enabled ? '<p class="text-xs text-gray-500">(סימולציה - להפעלת SMS אמיתי, הגדר SMS_CONFIG.enabled = true)</p>' : ''}
-                            </div>
-                            
-                            <div class="bg-gray-50 rounded-lg p-4 mb-6 border-2 border-gray-200">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: ${smsStatusColor};">
-                                        <i class="fas fa-mobile-alt text-white"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-gray-800 text-sm leading-relaxed">
-                                            התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול 
-                                            <a href="#" onclick="event.preventDefault(); handleSMSClick();" class="font-bold underline" style="color: ${COLORS.primary};">
-                                                לחץ פה
-                                            </a>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-3">
-                                <button type="button" onclick="closeSMSModal()" class="flex-1 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90 bg-gray-200 text-gray-700">
-                                    סגור
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
 
         // Registration Modal Functions
         function openRegisterModal() {
@@ -3819,140 +3768,82 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function verifyForgotPassword() {
             const memberCode = document.getElementById('forgotMemberCode')?.value.trim();
-            const smsCode = document.getElementById('forgotSMSCode')?.value.trim();
+            const emailInput = document.getElementById('forgotEmailCode')?.value.trim();
 
-            if (!memberCode && !smsCode) {
-                alert('אנא הזן קוד חבר או קוד SMS');
+            if (!memberCode && !emailInput) {
+                alert('אנא הזן שם משתמש או כתובת אימייל');
                 return;
             }
 
             let employee = null;
 
-            // Try to find by member code (same logic as login - ID or username)
+            // Try to find by member code (username or worker code)
             if (memberCode) {
-                const userId = parseInt(memberCode);
-                if (!isNaN(userId)) {
-                    // Username is a number - search by ID, but only if employee doesn't have custom username
-                    employee = employees.find(e => e.id === userId && !e.username);
-                } else {
-                    // Username is text - search by username field first, then by name
-                    const usernameLower = memberCode.toLowerCase().trim();
-                    employee = employees.find(e => 
-                        (e.username && e.username.toLowerCase().trim() === usernameLower) ||
-                        e.name.toLowerCase().includes(usernameLower) ||
-                        e.name.toLowerCase() === usernameLower
-                    );
-                }
+                const usernameLower = memberCode.toLowerCase().trim();
+                employee = employees.find(e =>
+                    (e.workerCode && e.workerCode === memberCode) ||
+                    (e.username && e.username.toLowerCase().trim() === usernameLower) ||
+                    e.name.toLowerCase().includes(usernameLower) ||
+                    e.name.toLowerCase() === usernameLower
+                );
             }
 
-            // Try to find by SMS code (phone number) or email
-            if (!employee && smsCode) {
-                // Check if it's a phone number
-                employee = employees.find(e => e.phone === smsCode || e.phone.replace(/-/g, '') === smsCode.replace(/-/g, ''));
-                // If not found, check if it's an email
-                if (!employee && smsCode.includes('@')) {
-                    const emailToFind = smsCode.toLowerCase().trim();
-                    console.log('Searching for employee with email:', emailToFind);
+            // Try to find by email
+            if (!employee && emailInput) {
+                if (emailInput.includes('@')) {
+                    const emailToFind = emailInput.toLowerCase().trim();
                     employee = employees.find(e => {
                         if (e.email) {
-                            const employeeEmail = e.email.toLowerCase().trim();
-                            console.log('Comparing:', employeeEmail, 'with', emailToFind);
-                            return employeeEmail === emailToFind;
+                            return e.email.toLowerCase().trim() === emailToFind;
                         }
                         return false;
                     });
-                    console.log('Found employee:', employee ? employee.name : 'Not found');
+                } else {
+                    // Maybe it's a phone number
+                    employee = employees.find(e => e.phone && (e.phone === emailInput || e.phone.replace(/-/g, '') === emailInput.replace(/-/g, '')));
                 }
             }
 
             if (employee) {
-                // If SMS/Email code was used, send email (FREE!) or SMS
-                if (smsCode && !memberCode) {
-                    // Generate verification token
-                    const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                    smsModalState.employee = employee;
-                    smsModalState.verificationToken = verificationToken;
-                    
-                    console.log('Employee found:', {
-                        name: employee.name,
-                        email: employee.email,
-                        hasEmail: !!employee.email,
-                        emailTrimmed: employee.email ? employee.email.trim() : 'N/A',
-                        emailConfigEnabled: EMAIL_CONFIG.enabled
-                    });
-                    
-                    // Prefer email if available and configured (FREE!)
+                // If email was used, send reset email
+                if (emailInput && !memberCode) {
                     if (employee.email && employee.email.trim() && EMAIL_CONFIG.enabled) {
                         // Validate email format
                         if (!employee.email.includes('@')) {
-                            alert('כתובת האימייל לא תקינה. אנא בדוק את כתובת האימייל של העובד.');
+                            alert('כתובת האימייל לא תקינה.');
                             return;
                         }
-                        
+
                         const emailToSend = employee.email.trim();
-                        console.log('Sending email to:', emailToSend);
-                        
+                        const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
                         // Create a token that includes email hash for verification across domains
                         const emailForHash = employee.email.toLowerCase().trim();
                         const emailHash = btoa(emailForHash).substring(0, 10);
                         const tokenWithEmail = `${verificationToken}_${emailHash}`;
-                        
-                        console.log('Creating reset token:', {
-                            email: emailForHash,
-                            hash: emailHash,
-                            token: tokenWithEmail
-                        });
-                        
-                        // Save token to localStorage so we can verify it when user clicks the link
+
+                        // Save token to localStorage
                         const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
                         resetTokens[tokenWithEmail] = {
                             employeeId: employee.id,
                             email: employee.email.toLowerCase(),
                             timestamp: Date.now(),
-                            expiresIn: 3600000 // 1 hour expiration
+                            expiresIn: 3600000
                         };
                         localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
-                        
+
                         sendEmail(emailToSend, employee.name, tokenWithEmail, employee).then(() => {
-                            alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך ולחץ על הקישור לאיפוס הסיסמה.`);
-                            // Close the modal - password reset will happen when user clicks the link in email
+                            alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך.`);
                             forgotPasswordModalState.show = false;
-                            smsModalState.show = false;
                             render();
                         }).catch((error) => {
                             console.error('Email sending failed:', error);
-                            console.error('Error details:', {
-                                message: error.message,
-                                status: error.status,
-                                text: error.text,
-                                serviceId: EMAIL_CONFIG.serviceId,
-                                templateId: EMAIL_CONFIG.templateId,
-                                publicKey: EMAIL_CONFIG.publicKey ? 'Set' : 'Missing',
-                                emailSent: employee.email
-                            });
                             alert(`שגיאה בשליחת אימייל: ${error.message || 'Unknown error'}. אנא נסה שוב או השתמש בקוד חבר.`);
                         });
                     } else if (!employee.email || !employee.email.trim()) {
-                        // Employee found but no email
                         alert(`העובד ${employee.name} נמצא, אבל אין לו כתובת אימייל במערכת. אנא השתמש בקוד חבר או הוסף אימייל לעובד.`);
                     } else if (!EMAIL_CONFIG.enabled) {
-                        // Email service not enabled
-                        alert('שירות האימייל לא מופעל. אנא השתמש בקוד חבר או הפעל את שירות האימייל.');
-                    } else if (SMS_CONFIG.enabled) {
-                        // Fallback to SMS if email not available
-                        sendSMS(employee.phone, verificationToken).then(() => {
-                            smsModalState.show = true;
-                            forgotPasswordModalState.show = false;
-                            render();
-                        }).catch((error) => {
-                            console.error('SMS sending failed:', error);
-                            alert('שגיאה בשליחת SMS. אנא נסה שוב או השתמש בקוד חבר.');
-                        });
-                    } else {
-                        // Show simulation modal if neither is configured
-                        smsModalState.show = true;
-                        forgotPasswordModalState.show = false;
-                        render();
+                        alert('שירות האימייל לא מופעל. אנא השתמש בקוד חבר.');
                     }
                 } else {
                     // Member code was used, go directly to reset
@@ -3961,7 +3852,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     render();
                 }
             } else {
-                alert('קוד לא תקין. אנא נסה שוב');
+                alert('לא נמצא עובד. אנא בדוק את הפרטים ונסה שוב.');
             }
         }
 
@@ -4033,66 +3924,6 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 });
                 throw error;
             }
-        }
-
-        // Function to send SMS via backend API
-        async function sendSMS(phoneNumber, verificationToken) {
-            if (!SMS_CONFIG.enabled || !SMS_CONFIG.apiEndpoint) {
-                throw new Error('SMS service not configured');
-            }
-
-            // Format phone number (remove dashes, ensure country code)
-            let formattedPhone = phoneNumber.replace(/-/g, '').replace(/\s/g, '');
-            // Add Israel country code if not present
-            if (!formattedPhone.startsWith('972')) {
-                formattedPhone = formattedPhone.startsWith('0') ? '972' + formattedPhone.substring(1) : '972' + formattedPhone;
-            }
-
-            // Create verification link using the configured baseUrl
-            const baseUrl = EMAIL_CONFIG.baseUrl || window.location.origin;
-            const verificationLink = `${baseUrl}/?reset=${verificationToken}`;
-            const message = `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול ${verificationLink}`;
-
-            try {
-                const response = await fetch(SMS_CONFIG.apiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        to: formattedPhone,
-                        message: message
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`SMS API error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error sending SMS:', error);
-                throw error;
-            }
-        }
-
-        function handleSMSClick() {
-            // Verify token and open password reset
-            if (smsModalState.employee && smsModalState.verificationToken) {
-                forgotPasswordModalState.verifiedEmployee = smsModalState.employee;
-                forgotPasswordModalState.step = 'reset';
-                forgotPasswordModalState.show = true;
-                smsModalState.show = false;
-                render();
-            }
-        }
-
-        function closeSMSModal() {
-            smsModalState.show = false;
-            smsModalState.employee = null;
-            smsModalState.verificationToken = null;
-            render();
         }
 
         // Delete user function
@@ -4256,9 +4087,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <div class="text-center text-gray-500 py-2">או</div>
                                     
                                     <div>
-                                        <label class="block text-gray-700 font-medium mb-2">אימייל או מספר טלפון</label>
-                                        <input type="text" id="forgotSMSCode" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="לדוגמה: user@email.com או 052-377-7468">
-                                        <p class="text-xs text-gray-500 mt-1">💡 אימייל הוא בחינם! (200 הודעות בחודש)</p>
+                                        <label class="block text-gray-700 font-medium mb-2">כתובת אימייל</label>
+                                        <input type="text" id="forgotEmailCode" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="לדוגמה: user@email.com">
+                                        <p class="text-xs text-gray-500 mt-1">קישור לאיפוס סיסמה יישלח לאימייל שלך</p>
                                     </div>
                                     
                                     <div class="flex gap-3 pt-4">
