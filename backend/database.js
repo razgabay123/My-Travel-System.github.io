@@ -58,6 +58,14 @@ async function initDatabase() {
         )
     `);
 
+    // Add email column if it doesn't exist (migration for existing databases)
+    try {
+        db.run('ALTER TABLE employees ADD COLUMN email TEXT');
+        console.log('✅ Added email column to employees table');
+    } catch (e) {
+        // Column already exists, ignore
+    }
+
     console.log('✅ Database tables initialized');
     saveDatabase();
 }
