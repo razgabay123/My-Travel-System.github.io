@@ -4672,8 +4672,70 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // Save to localStorage for offline access
             saveEmployees();
 
+            // Check for password reset token in URL
+            checkResetTokenInURL();
+
             // Now render the app
             render();
+        }
+
+        function checkResetTokenInURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resetToken = urlParams.get('reset');
+
+            if (!resetToken) return;
+
+            // Clean the URL so the token doesn't persist on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            // Extract email hash from token (format: randomString_emailHash)
+            const parts = resetToken.split('_');
+            if (parts.length < 2) {
+                alert('קישור לא תקין. אנא נסה שוב.');
+                return;
+            }
+            const emailHash = parts[parts.length - 1];
+
+            // Find employee by matching email hash
+            const employee = employees.find(e => {
+                if (!e.email) return false;
+                const empEmailHash = btoa(e.email.toLowerCase().trim()).substring(0, 10);
+                return empEmailHash === emailHash;
+            });
+
+            if (employee) {
+                // Open the password reset modal directly for this employee
+                forgotPasswordModalState.show = true;
+                forgotPasswordModalState.step = 'reset';
+                forgotPasswordModalState.verifiedEmployee = employee;
+            } else {
+                // Try localStorage tokens as fallback (same browser)
+                const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
+                const tokenData = resetTokens[resetToken];
+
+                if (tokenData) {
+                    // Check expiration (1 hour)
+                    if (Date.now() - tokenData.timestamp > tokenData.expiresIn) {
+                        delete resetTokens[resetToken];
+                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
+                        alert('הקישור פג תוקף. אנא בקש קישור חדש.');
+                        return;
+                    }
+
+                    const emp = employees.find(e => e.id === tokenData.employeeId);
+                    if (emp) {
+                        forgotPasswordModalState.show = true;
+                        forgotPasswordModalState.step = 'reset';
+                        forgotPasswordModalState.verifiedEmployee = emp;
+
+                        // Clean up used token
+                        delete resetTokens[resetToken];
+                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
+                    }
+                } else {
+                    alert('קישור לא תקין או שפג תוקפו. אנא בקש קישור חדש.');
+                }
+            }
         }
 
         // Start the app
