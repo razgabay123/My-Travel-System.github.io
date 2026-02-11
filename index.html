@@ -2898,9 +2898,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         async function exportMonthlyReportToPDF(year, month, reportData) {
             try {
-                const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-                                   'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-                const monthName = monthNames[month - 1];
+                const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June',
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = monthNamesEn[month - 1];
 
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -2910,12 +2910,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 const accentColor = [251, 191, 36]; // COLORS.accent
                 const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
 
+                // Helper to transliterate Hebrew route names for PDF text
+                const routeToEnglish = (route) => {
+                    const map = { 'מסלול א': 'Route A', 'מסלול ב': 'Route B', 'מסלול ג': 'Route C', 'מסלול ד': 'Route D' };
+                    return map[route] || `Route ${route}`;
+                };
+
                 // --- Page 1: Summary ---
                 // Header background
                 doc.setFillColor(...primaryColor);
                 doc.rect(0, 0, 210, 40, 'F');
 
-                // Title (using default font - Hebrew may render RTL)
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(22);
                 doc.text(`${monthName} ${year}`, 105, 18, { align: 'center' });
@@ -2926,7 +2931,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 const stats = [
                     { label: 'Total Trips', value: reportData.totalTrips.toString(), color: primaryColor },
                     { label: 'Avg Passengers/Trip', value: reportData.avgPassengersPerTrip.toString(), color: [16, 185, 129] },
-                    { label: 'Most Used Route', value: reportData.mostUsedRoute, color: [251, 191, 36] },
+                    { label: 'Most Used Route', value: routeToEnglish(reportData.mostUsedRoute), color: [251, 191, 36] },
                     { label: 'Cancellation Rate', value: `${reportData.cancellationRate}%`, color: [239, 68, 68] }
                 ];
 
@@ -3099,7 +3104,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                         doc.setTextColor(60, 60, 60);
                         doc.setFontSize(10);
-                        doc.text(route, 35, tableY + 6);
+                        doc.text(routeToEnglish(route), 35, tableY + 6);
                         doc.text(count.toString(), 105, tableY + 6);
                         doc.text(`${percentage}%`, 145, tableY + 6);
 
