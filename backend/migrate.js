@@ -6,7 +6,7 @@ async function migrate() {
     console.log('🔄 Starting migration from workers.json to SQLite...\n');
 
     // Initialize database
-    initDatabase();
+    await initDatabase();
 
     // Read workers.json
     const workersJsonPath = path.join(__dirname, '..', 'workers.json');

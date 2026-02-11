@@ -105,7 +105,11 @@ const employeeQueries = {
     },
 
     getByUsernameOrCode: (username) => {
-        const result = db.exec('SELECT * FROM employees WHERE username = ? OR workerCode = ?', [username, username]);
+        // Search by username, workerCode, id, or name
+        const result = db.exec(
+            'SELECT * FROM employees WHERE username = ? OR workerCode = ? OR CAST(id AS TEXT) = ? OR name = ?',
+            [username, username, username, username]
+        );
         if (result.length === 0 || result[0].values.length === 0) return null;
         return rowToObject(result[0].columns, result[0].values[0]);
     },

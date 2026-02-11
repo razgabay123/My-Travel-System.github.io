@@ -20,5 +20,13 @@ Thumbs.db
 # Logs
 *.log
 
-# Database
+# Database (contains user passwords - never commit!)
 backend/travel-system.db
+*.db
+
+# Environment variables (may contain secrets)
+.env
+backend/.env
+
+# Backend lock file (Render installs its own)
+backend/package-lock.json
