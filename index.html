@@ -24,6 +24,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF + Chart.js for PDF report generation with charts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Leaflet.js - Free OpenStreetMap integration, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1080,13 +1083,18 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         // מסכים
         function DashboardView() {
+            const loggedInEmployee = employees.find(e => e.id === loggedInUserId);
+            const greeting = loggedInEmployee ? loggedInEmployee.name : '';
             return `
                 <div class="space-y-6">
 
-                    <h2 class="text-2xl font-bold flex items-center gap-3" style="color: ${COLORS.primary};">
-                        <i class="fas fa-home" style="color: ${COLORS.primary};"></i>
-                        דשבורד ראשי
-                    </h2>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <h2 class="text-2xl font-bold flex items-center gap-3" style="color: ${COLORS.primary};">
+                            <i class="fas fa-home" style="color: ${COLORS.primary};"></i>
+                            דשבורד ראשי
+                        </h2>
+                        ${greeting ? `<p class="text-lg font-medium text-gray-600"><i class="fas fa-hand-wave ml-1" style="color: ${COLORS.accent};"></i> שלום, <span class="font-bold" style="color: ${COLORS.primary};">${greeting}</span></p>` : ''}
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -2701,8 +2709,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div class="space-y-3">
 
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                    <span class="text-gray-600">שם עובד/ת:</span>
-                                    <span class="font-bold">${employees.find(e => e.id === workerId)?.name || 'לא נמצא'}</span>
+                                    <span class="text-gray-600">קוד עובד/ת:</span>
+                                    <span class="font-bold">${employees.find(e => e.id === workerId)?.workerCode || employees.find(e => e.id === workerId)?.id || 'לא נמצא'}</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-600">מסלול:</span>
@@ -2888,49 +2896,233 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             };
         }
 
-        function exportMonthlyReportToExcel(year, month, reportData) {
+        async function exportMonthlyReportToPDF(year, month, reportData) {
             try {
-                const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 
+                const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
                                    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
                 const monthName = monthNames[month - 1];
-                
-                // Create summary sheet
-                const summaryData = [
-                    ['דוח נסיעות חודשי', ''],
-                    ['חודש', `${monthName} ${year}`],
-                    [''],
-                    ['סה"כ נסיעות', reportData.totalTrips],
-                    ['ממוצע נוסעים לנסיעה', reportData.avgPassengersPerTrip],
-                    ['המסלול הכי בשימוש', reportData.mostUsedRoute],
-                    ['אחוז ביטולים', `${reportData.cancellationRate}%`],
-                    [''],
-                    ['פירוט לפי מסלול', ''],
-                    ['מסלול', 'מספר נסיעות']
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                // Colors matching the app theme
+                const primaryColor = [30, 58, 138]; // COLORS.primary
+                const accentColor = [251, 191, 36]; // COLORS.accent
+                const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
+
+                // --- Page 1: Summary ---
+                // Header background
+                doc.setFillColor(...primaryColor);
+                doc.rect(0, 0, 210, 40, 'F');
+
+                // Title (using default font - Hebrew may render RTL)
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(22);
+                doc.text(`${monthName} ${year}`, 105, 18, { align: 'center' });
+                doc.setFontSize(14);
+                doc.text('Monthly Transport Report', 105, 30, { align: 'center' });
+
+                // Summary stats boxes
+                const stats = [
+                    { label: 'Total Trips', value: reportData.totalTrips.toString(), color: primaryColor },
+                    { label: 'Avg Passengers/Trip', value: reportData.avgPassengersPerTrip.toString(), color: [16, 185, 129] },
+                    { label: 'Most Used Route', value: reportData.mostUsedRoute, color: [251, 191, 36] },
+                    { label: 'Cancellation Rate', value: `${reportData.cancellationRate}%`, color: [239, 68, 68] }
                 ];
-                
-                // Add route usage data
-                Object.entries(reportData.routeUsage)
-                    .sort((a, b) => b[1] - a[1])
-                    .forEach(([route, count]) => {
-                        summaryData.push([route, count]);
+
+                let startY = 50;
+                const boxWidth = 43;
+                const boxGap = 5;
+                const startX = (210 - (4 * boxWidth + 3 * boxGap)) / 2;
+
+                stats.forEach((stat, i) => {
+                    const x = startX + i * (boxWidth + boxGap);
+                    doc.setFillColor(...stat.color);
+                    doc.roundedRect(x, startY, boxWidth, 30, 3, 3, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(18);
+                    doc.text(stat.value, x + boxWidth / 2, startY + 14, { align: 'center' });
+                    doc.setFontSize(8);
+                    doc.text(stat.label, x + boxWidth / 2, startY + 23, { align: 'center' });
+                });
+
+                // --- Pie Chart: Route Usage ---
+                const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
+
+                if (routeEntries.length > 0) {
+                    // Create offscreen canvas for pie chart
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 500;
+                    canvas.height = 350;
+                    document.body.appendChild(canvas);
+
+                    const chart = new Chart(canvas, {
+                        type: 'pie',
+                        data: {
+                            labels: routeEntries.map(([route]) => route),
+                            datasets: [{
+                                data: routeEntries.map(([, count]) => count),
+                                backgroundColor: chartColors.slice(0, routeEntries.length),
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Route Distribution', font: { size: 18, weight: 'bold' } },
+                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
+                            }
+                        }
                     });
-                
-                // Create workbook
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(summaryData);
-                
-                // Set column widths
-                ws['!cols'] = [{ wch: 25 }, { wch: 15 }];
-                
-                XLSX.utils.book_append_sheet(wb, ws, 'דוח חודשי');
-                
-                // Generate filename
-                const filename = `דוח_נסיעות_${monthName}_${year}.xlsx`;
-                XLSX.writeFile(wb, filename);
-                
+
+                    // Wait for chart to render
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const pieImage = canvas.toDataURL('image/png');
+                    doc.addImage(pieImage, 'PNG', 25, 90, 160, 112);
+
+                    chart.destroy();
+                    document.body.removeChild(canvas);
+
+                    // --- Bar Chart: Trips per Route ---
+                    const canvas2 = document.createElement('canvas');
+                    canvas2.width = 500;
+                    canvas2.height = 300;
+                    document.body.appendChild(canvas2);
+
+                    const barChart = new Chart(canvas2, {
+                        type: 'bar',
+                        data: {
+                            labels: routeEntries.map(([route]) => route),
+                            datasets: [{
+                                label: 'Number of Trips',
+                                data: routeEntries.map(([, count]) => count),
+                                backgroundColor: chartColors.slice(0, routeEntries.length),
+                                borderWidth: 1,
+                                borderColor: '#e5e7eb',
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Trips per Route', font: { size: 18, weight: 'bold' } },
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                            }
+                        }
+                    });
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const barImage = canvas2.toDataURL('image/png');
+
+                    // --- Page 2: Bar chart + Route table ---
+                    doc.addPage();
+
+                    // Header
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(0, 0, 210, 20, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(12);
+                    doc.text(`${monthName} ${year} - Details`, 105, 13, { align: 'center' });
+
+                    doc.addImage(barImage, 'PNG', 25, 28, 160, 96);
+
+                    barChart.destroy();
+                    document.body.removeChild(canvas2);
+
+                    // --- Doughnut Chart: Active vs Cancelled ---
+                    const canvas3 = document.createElement('canvas');
+                    canvas3.width = 400;
+                    canvas3.height = 300;
+                    document.body.appendChild(canvas3);
+
+                    const activeCount = reportData.totalScheduled - reportData.totalCancellations;
+                    const doughnutChart = new Chart(canvas3, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Active Rides', 'Cancellations'],
+                            datasets: [{
+                                data: [activeCount, reportData.totalCancellations],
+                                backgroundColor: ['#10b981', '#ef4444'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Active vs Cancelled', font: { size: 18, weight: 'bold' } },
+                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
+                            }
+                        }
+                    });
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const doughnutImage = canvas3.toDataURL('image/png');
+                    doc.addImage(doughnutImage, 'PNG', 35, 130, 140, 105);
+
+                    doughnutChart.destroy();
+                    document.body.removeChild(canvas3);
+
+                    // --- Route Details Table on page 2 ---
+                    let tableY = 242;
+
+                    // Table header
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(25, tableY, 160, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.text('Route', 35, tableY + 7);
+                    doc.text('Trips', 105, tableY + 7);
+                    doc.text('% of Total', 145, tableY + 7);
+
+                    tableY += 10;
+
+                    // Table rows
+                    routeEntries.forEach(([route, count], i) => {
+                        const percentage = reportData.totalTrips > 0
+                            ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
+
+                        if (i % 2 === 0) {
+                            doc.setFillColor(245, 247, 250);
+                            doc.rect(25, tableY, 160, 9, 'F');
+                        }
+
+                        doc.setTextColor(60, 60, 60);
+                        doc.setFontSize(10);
+                        doc.text(route, 35, tableY + 6);
+                        doc.text(count.toString(), 105, tableY + 6);
+                        doc.text(`${percentage}%`, 145, tableY + 6);
+
+                        tableY += 9;
+                    });
+                }
+
+                // Footer on all pages
+                const pageCount = doc.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Page ${i} / ${pageCount}`, 105, 290, { align: 'center' });
+                }
+
+                // Save
+                const filename = `transport_report_${monthName}_${year}.pdf`;
+                doc.save(filename);
+
                 showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
             } catch (error) {
-                console.error('Error exporting report:', error);
+                console.error('Error exporting PDF report:', error);
                 showModal('error', 'שגיאה בייצוא הדוח. אנא נסה שוב.');
             }
         }
@@ -2941,11 +3133,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             render();
         }
 
-        function exportCurrentReport() {
+        async function exportCurrentReport() {
             const year = parseInt(document.getElementById('reportYear')?.value || new Date().getFullYear());
             const month = parseInt(document.getElementById('reportMonth')?.value || new Date().getMonth() + 1);
             const reportData = generateMonthlyTransportReport(year, month);
-            exportMonthlyReportToExcel(year, month, reportData);
+            await exportMonthlyReportToPDF(year, month, reportData);
         }
 
         function ReportsView() {
@@ -3032,8 +3224,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-center sm:text-right">
                             <h3 class="text-xl font-bold text-gray-800">פירוט לפי מסלול</h3>
                             <button onclick="exportCurrentReport()" class="px-4 py-2 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white text-sm w-full sm:w-auto" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
-                                <i class="fas fa-file-excel ml-2"></i>
-                                ייצא ל-Excel
+                                <i class="fas fa-file-pdf ml-2"></i>
+                                ייצא ל-PDF
                             </button>
                         </div>
 
