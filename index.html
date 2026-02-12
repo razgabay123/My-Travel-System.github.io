@@ -2958,78 +2958,121 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     doughnutChart.destroy(); document.body.removeChild(canvas3);
                 }
 
-                // --- Build HTML string for PDF ---
+                // --- Render header+stats as canvas image (for Hebrew support) ---
+                const headerCanvas = document.createElement('canvas');
+                headerCanvas.width = 800; headerCanvas.height = 200;
+                const hCtx = headerCanvas.getContext('2d');
+
+                // Header background
+                hCtx.fillStyle = '#1e3a8a';
+                hCtx.fillRect(0, 0, 800, 80);
+                hCtx.fillStyle = '#fff';
+                hCtx.font = 'bold 32px Arial';
+                hCtx.textAlign = 'center';
+                hCtx.fillText(`${monthName} ${year}`, 400, 38);
+                hCtx.font = '20px Arial';
+                hCtx.fillText('דוח הסעות חודשי', 400, 65);
+
+                // Stats boxes
                 const stats = [
-                    { label: 'סה"כ נסיעות', value: reportData.totalTrips, color: '#1e3a8a' },
-                    { label: 'ממוצע נוסעים לנסיעה', value: reportData.avgPassengersPerTrip, color: '#10b981' },
-                    { label: 'המסלול הפעיל ביותר', value: reportData.mostUsedRoute, color: '#fbbf24' },
+                    { label: 'סה"כ נסיעות', value: String(reportData.totalTrips), color: '#1e3a8a' },
+                    { label: 'ממוצע נוסעים', value: String(reportData.avgPassengersPerTrip), color: '#10b981' },
+                    { label: 'מסלול פעיל', value: String(reportData.mostUsedRoute), color: '#fbbf24' },
                     { label: 'אחוז ביטולים', value: reportData.cancellationRate + '%', color: '#ef4444' }
                 ];
+                const boxW = 175, boxH = 70, boxGap = 15;
+                const totalW = stats.length * boxW + (stats.length - 1) * boxGap;
+                let bx = (800 - totalW) / 2;
+                const by = 100;
+                stats.forEach(s => {
+                    hCtx.fillStyle = s.color;
+                    hCtx.beginPath();
+                    hCtx.roundRect(bx, by, boxW, boxH, 10);
+                    hCtx.fill();
+                    hCtx.fillStyle = '#fff';
+                    hCtx.font = 'bold 26px Arial';
+                    hCtx.textAlign = 'center';
+                    hCtx.fillText(s.value, bx + boxW / 2, by + 32);
+                    hCtx.font = '14px Arial';
+                    hCtx.fillText(s.label, bx + boxW / 2, by + 55);
+                    bx += boxW + boxGap;
+                });
+                chartImages.header = headerCanvas.toDataURL('image/png');
 
-                const statsHtml = stats.map(s => `
-                    <div style="display:inline-block;width:23%;background:${s.color};color:#fff;border-radius:10px;padding:16px 10px;text-align:center;margin:0 0.5%;">
-                        <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${s.value}</div>
-                        <div style="font-size:11px;">${s.label}</div>
-                    </div>
-                `).join('');
+                // --- Render page 2 header as canvas ---
+                const header2Canvas = document.createElement('canvas');
+                header2Canvas.width = 800; header2Canvas.height = 40;
+                const h2Ctx = header2Canvas.getContext('2d');
+                h2Ctx.fillStyle = '#1e3a8a';
+                h2Ctx.fillRect(0, 0, 800, 40);
+                h2Ctx.fillStyle = '#fff';
+                h2Ctx.font = '18px Arial';
+                h2Ctx.textAlign = 'center';
+                h2Ctx.fillText(`${monthName} ${year} - פירוט`, 400, 26);
+                chartImages.header2 = header2Canvas.toDataURL('image/png');
 
-                const tableRows = routeEntries.map(([route, count], i) => {
+                // --- Render route table as canvas ---
+                const rowH = 32;
+                const tblH = 36 + routeEntries.length * rowH + 10;
+                const tblCanvas = document.createElement('canvas');
+                tblCanvas.width = 800; tblCanvas.height = tblH;
+                const tCtx = tblCanvas.getContext('2d');
+                tCtx.fillStyle = '#fff';
+                tCtx.fillRect(0, 0, 800, tblH);
+
+                // Table header
+                tCtx.fillStyle = '#1e3a8a';
+                tCtx.fillRect(20, 0, 760, 36);
+                tCtx.fillStyle = '#fff';
+                tCtx.font = 'bold 15px Arial';
+                tCtx.textAlign = 'center';
+                tCtx.fillText('אחוז מהסה"כ', 120, 24);
+                tCtx.fillText('נסיעות', 320, 24);
+                tCtx.fillText('מסלול', 600, 24);
+
+                // Table rows
+                routeEntries.forEach(([route, count], i) => {
                     const pct = reportData.totalTrips > 0 ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
-                    const bg = i % 2 === 0 ? '#f5f7fa' : '#fff';
-                    return `<tr style="background:${bg};">
-                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${route}</td>
-                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:center;">${count}</td>
-                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:center;">${pct}%</td>
-                    </tr>`;
-                }).join('');
+                    const ry = 36 + i * rowH;
+                    tCtx.fillStyle = i % 2 === 0 ? '#f5f7fa' : '#fff';
+                    tCtx.fillRect(20, ry, 760, rowH);
+                    tCtx.fillStyle = '#333';
+                    tCtx.font = '14px Arial';
+                    tCtx.textAlign = 'center';
+                    tCtx.fillText(pct + '%', 120, ry + 21);
+                    tCtx.fillText(String(count), 320, ry + 21);
+                    tCtx.fillText(route, 600, ry + 21);
+                });
+                chartImages.table = tblCanvas.toDataURL('image/png');
 
-                const htmlString = `
-                    <div style="width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;">
-                        <!-- Page 1: Header + Stats + Pie Chart -->
-                        <div style="padding:0;">
-                            <div style="background:#1e3a8a;padding:24px 20px;text-align:center;color:#fff;">
-                                <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${monthName} ${year}</div>
-                                <div style="font-size:16px;">דוח הסעות חודשי</div>
-                            </div>
-                            <div style="text-align:center;padding:20px 20px 10px 20px;">
-                                ${statsHtml}
-                            </div>
-                            ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
-                        </div>
-
-                        <!-- Page 2: Bar Chart + Doughnut + Table -->
-                        <div style="page-break-before:always;padding:0;">
-                            <div style="background:#1e3a8a;padding:12px 20px;text-align:center;color:#fff;">
-                                <div style="font-size:14px;">${monthName} ${year} - פירוט</div>
-                            </div>
-                            ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
-                            ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
-                            <div style="padding:20px;">
-                                <table style="width:100%;border-collapse:collapse;direction:rtl;text-align:right;">
-                                    <thead>
-                                        <tr style="background:#1e3a8a;color:#fff;">
-                                            <th style="padding:8px 12px;text-align:right;">מסלול</th>
-                                            <th style="padding:8px 12px;text-align:center;">נסיעות</th>
-                                            <th style="padding:8px 12px;text-align:center;">אחוז מהסה"כ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>${tableRows}</tbody>
-                                </table>
-                            </div>
-                        </div>
+                // --- Build PDF from images only ---
+                const container = document.createElement('div');
+                container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;background:#fff;';
+                container.innerHTML = `
+                    <div style="padding:0;">
+                        <img src="${chartImages.header}" style="width:100%;" />
+                        ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
+                    </div>
+                    <div style="page-break-before:always;padding:0;">
+                        <img src="${chartImages.header2}" style="width:100%;" />
+                        ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
+                        ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
+                        <div style="padding:10px 20px;"><img src="${chartImages.table}" style="width:100%;" /></div>
                     </div>
                 `;
+                document.body.appendChild(container);
 
-                // --- Generate PDF from HTML string ---
                 const filename = `דוח_הסעות_${monthName}_${year}.pdf`;
                 await html2pdf().set({
                     margin: 0,
                     filename: filename,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['css'] }
-                }).from(htmlString, 'string').save();
+                }).from(container).save();
+
+                document.body.removeChild(container);
 
                 showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
             } catch (error) {
