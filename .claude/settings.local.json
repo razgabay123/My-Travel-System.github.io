@@ -17,7 +17,10 @@
       "Bash(cmd.exe /c \"pushd \\\\?\\\\D:\\\\omri_project && del nul && popd\")",
       "Bash(test:*)",
       "Bash(python3 -c \"\nimport ctypes\nimport pathlib\np = str\\(pathlib.PureWindowsPath\\(r''D:\\\\omri_project''\\) / ''nul''\\)\nextended = ''\\\\\\\\\\\\\\\\?'' + ''\\\\\\\\'' + p\nprint\\(''Path:'', repr\\(extended\\)\\)\nresult = ctypes.windll.kernel32.DeleteFileW\\(extended\\)\nerr = ctypes.windll.kernel32.GetLastError\\(\\)\nprint\\(f''Result: {result}, Error: {err}''\\)\n\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git config:*)",
+      "Bash(where:*)",
+      "Bash(\"C:\\\\Program Files\\\\Git\\\\mingw64\\\\bin\\\\git-credential-manager.exe\" --version)"
     ]
   }
 }

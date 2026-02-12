@@ -8,9 +8,10 @@ android/
 *.aab
 *.zip
 
-# IDE
+# IDE / tools
 .idea/
 .vscode/
+.claude/
 *.iml
 
 # OS
