@@ -2958,12 +2958,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     doughnutChart.destroy(); document.body.removeChild(canvas3);
                 }
 
-                // --- Build HTML report ---
-                const container = document.createElement('div');
-                container.id = 'pdf-report-container';
-                container.style.cssText = 'position:absolute;left:0;top:0;z-index:-9999;opacity:0;width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;';
-
-                // Stats data
+                // --- Build HTML string for PDF ---
                 const stats = [
                     { label: 'סה"כ נסיעות', value: reportData.totalTrips, color: '#1e3a8a' },
                     { label: 'ממוצע נוסעים לנסיעה', value: reportData.avgPassengersPerTrip, color: '#10b981' },
@@ -2972,13 +2967,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 ];
 
                 const statsHtml = stats.map(s => `
-                    <div style="flex:1;background:${s.color};color:#fff;border-radius:10px;padding:16px 10px;text-align:center;min-width:0;">
+                    <div style="display:inline-block;width:23%;background:${s.color};color:#fff;border-radius:10px;padding:16px 10px;text-align:center;margin:0 0.5%;">
                         <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${s.value}</div>
                         <div style="font-size:11px;">${s.label}</div>
                     </div>
                 `).join('');
 
-                // Route table rows
                 const tableRows = routeEntries.map(([route, count], i) => {
                     const pct = reportData.totalTrips > 0 ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
                     const bg = i % 2 === 0 ? '#f5f7fa' : '#fff';
@@ -2989,56 +2983,53 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     </tr>`;
                 }).join('');
 
-                container.innerHTML = `
-                    <!-- Page 1: Header + Stats + Pie Chart -->
-                    <div style="padding:0;">
-                        <div style="background:#1e3a8a;padding:24px 20px;text-align:center;color:#fff;border-radius:0;">
-                            <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${monthName} ${year}</div>
-                            <div style="font-size:16px;">דוח הסעות חודשי</div>
+                const htmlString = `
+                    <div style="width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;">
+                        <!-- Page 1: Header + Stats + Pie Chart -->
+                        <div style="padding:0;">
+                            <div style="background:#1e3a8a;padding:24px 20px;text-align:center;color:#fff;">
+                                <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${monthName} ${year}</div>
+                                <div style="font-size:16px;">דוח הסעות חודשי</div>
+                            </div>
+                            <div style="text-align:center;padding:20px 20px 10px 20px;">
+                                ${statsHtml}
+                            </div>
+                            ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
                         </div>
-                        <div style="display:flex;gap:12px;padding:20px 20px 10px 20px;">
-                            ${statsHtml}
-                        </div>
-                        ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
-                    </div>
 
-                    <!-- Page 2: Bar Chart + Doughnut + Table -->
-                    <div style="page-break-before:always;padding:0;">
-                        <div style="background:#1e3a8a;padding:12px 20px;text-align:center;color:#fff;">
-                            <div style="font-size:14px;">${monthName} ${year} - פירוט</div>
-                        </div>
-                        ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
-                        ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
-                        <div style="padding:20px;">
-                            <table style="width:100%;border-collapse:collapse;direction:rtl;text-align:right;">
-                                <thead>
-                                    <tr style="background:#1e3a8a;color:#fff;">
-                                        <th style="padding:8px 12px;text-align:right;">מסלול</th>
-                                        <th style="padding:8px 12px;text-align:center;">נסיעות</th>
-                                        <th style="padding:8px 12px;text-align:center;">אחוז מהסה"כ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${tableRows}</tbody>
-                            </table>
+                        <!-- Page 2: Bar Chart + Doughnut + Table -->
+                        <div style="page-break-before:always;padding:0;">
+                            <div style="background:#1e3a8a;padding:12px 20px;text-align:center;color:#fff;">
+                                <div style="font-size:14px;">${monthName} ${year} - פירוט</div>
+                            </div>
+                            ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
+                            ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
+                            <div style="padding:20px;">
+                                <table style="width:100%;border-collapse:collapse;direction:rtl;text-align:right;">
+                                    <thead>
+                                        <tr style="background:#1e3a8a;color:#fff;">
+                                            <th style="padding:8px 12px;text-align:right;">מסלול</th>
+                                            <th style="padding:8px 12px;text-align:center;">נסיעות</th>
+                                            <th style="padding:8px 12px;text-align:center;">אחוז מהסה"כ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${tableRows}</tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 `;
 
-                document.body.appendChild(container);
-
-                // --- Generate PDF ---
+                // --- Generate PDF from HTML string ---
                 const filename = `דוח_הסעות_${monthName}_${year}.pdf`;
                 await html2pdf().set({
                     margin: 0,
                     filename: filename,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['css'] }
-                }).from(container).save();
-
-                // Clean up - remove the temporary HTML
-                document.body.removeChild(container);
+                }).from(htmlString, 'string').save();
 
                 showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
             } catch (error) {
