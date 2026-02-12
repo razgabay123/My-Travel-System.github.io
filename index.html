@@ -2961,7 +2961,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 // --- Build HTML report ---
                 const container = document.createElement('div');
                 container.id = 'pdf-report-container';
-                container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;';
+                container.style.cssText = 'position:absolute;left:0;top:0;z-index:-9999;opacity:0;width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;';
 
                 // Stats data
                 const stats = [

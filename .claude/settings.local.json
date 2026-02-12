@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npm run migrate:*)"
+      "Bash(npm run migrate:*)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(dir:*)",
+      "Bash(del \"\\\\?\\\\D:\\\\omri_project\\\\nul\")",
+      "Bash(cmd.exe /c 'del \"\"\\\\\\\\?\\\\D:\\\\omri_project\\\\nul\"\"')",
+      "Bash(cmd.exe /c \"del /f /q \\\\?\\\\D:\\\\omri_project\\\\nul\")",
+      "Bash(powershell.exe -Command \"Remove-Item -Path ''\\\\?\\\\D:\\\\omri_project\\\\nul'' -Force\")",
+      "Bash(powershell.exe -Command \"Remove-Item -LiteralPath ''\\\\?\\\\D:\\\\omri_project\\\\nul'' -Force\")",
+      "Bash(cmd.exe /c \"pushd \\\\?\\\\D:\\\\omri_project && del nul && popd\")",
+      "Bash(test:*)",
+      "Bash(python3 -c \"\nimport ctypes\nimport pathlib\np = str\\(pathlib.PureWindowsPath\\(r''D:\\\\omri_project''\\) / ''nul''\\)\nextended = ''\\\\\\\\\\\\\\\\?'' + ''\\\\\\\\'' + p\nprint\\(''Path:'', repr\\(extended\\)\\)\nresult = ctypes.windll.kernel32.DeleteFileW\\(extended\\)\nerr = ctypes.windll.kernel32.GetLastError\\(\\)\nprint\\(f''Result: {result}, Error: {err}''\\)\n\")"
     ]
   }
 }
