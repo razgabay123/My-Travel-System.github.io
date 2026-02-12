@@ -25,7 +25,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- jsPDF + Chart.js for PDF report generation with charts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Leaflet.js - Free OpenStreetMap integration, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -2898,232 +2898,147 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         async function exportMonthlyReportToPDF(year, month, reportData) {
             try {
-                const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June',
-                                      'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthName = monthNamesEn[month - 1];
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-                // Colors matching the app theme
-                const primaryColor = [30, 58, 138]; // COLORS.primary
-                const accentColor = [251, 191, 36]; // COLORS.accent
+                const monthNamesHe = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+                                      'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+                const monthName = monthNamesHe[month - 1];
                 const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
-
-                // Helper to transliterate Hebrew route names for PDF text
-                const routeToEnglish = (route) => {
-                    const map = { 'מסלול א': 'Route A', 'מסלול ב': 'Route B', 'מסלול ג': 'Route C', 'מסלול ד': 'Route D' };
-                    return map[route] || `Route ${route}`;
-                };
-
-                // --- Page 1: Summary ---
-                // Header background
-                doc.setFillColor(...primaryColor);
-                doc.rect(0, 0, 210, 40, 'F');
-
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(22);
-                doc.text(`${monthName} ${year}`, 105, 18, { align: 'center' });
-                doc.setFontSize(14);
-                doc.text('Monthly Transport Report', 105, 30, { align: 'center' });
-
-                // Summary stats boxes
-                const stats = [
-                    { label: 'Total Trips', value: reportData.totalTrips.toString(), color: primaryColor },
-                    { label: 'Avg Passengers/Trip', value: reportData.avgPassengersPerTrip.toString(), color: [16, 185, 129] },
-                    { label: 'Most Used Route', value: routeToEnglish(reportData.mostUsedRoute), color: [251, 191, 36] },
-                    { label: 'Cancellation Rate', value: `${reportData.cancellationRate}%`, color: [239, 68, 68] }
-                ];
-
-                let startY = 50;
-                const boxWidth = 43;
-                const boxGap = 5;
-                const startX = (210 - (4 * boxWidth + 3 * boxGap)) / 2;
-
-                stats.forEach((stat, i) => {
-                    const x = startX + i * (boxWidth + boxGap);
-                    doc.setFillColor(...stat.color);
-                    doc.roundedRect(x, startY, boxWidth, 30, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(18);
-                    doc.text(stat.value, x + boxWidth / 2, startY + 14, { align: 'center' });
-                    doc.setFontSize(8);
-                    doc.text(stat.label, x + boxWidth / 2, startY + 23, { align: 'center' });
-                });
-
-                // --- Pie Chart: Route Usage ---
                 const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
+                const activeCount = reportData.totalScheduled - reportData.totalCancellations;
+
+                // --- Generate chart images ---
+                const chartImages = {};
 
                 if (routeEntries.length > 0) {
-                    // Create offscreen canvas for pie chart
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 500;
-                    canvas.height = 350;
-                    document.body.appendChild(canvas);
-
-                    const chart = new Chart(canvas, {
+                    // Pie chart
+                    const canvas1 = document.createElement('canvas');
+                    canvas1.width = 500; canvas1.height = 350;
+                    document.body.appendChild(canvas1);
+                    const pieChart = new Chart(canvas1, {
                         type: 'pie',
                         data: {
                             labels: routeEntries.map(([route]) => route),
-                            datasets: [{
-                                data: routeEntries.map(([, count]) => count),
-                                backgroundColor: chartColors.slice(0, routeEntries.length),
-                                borderWidth: 2,
-                                borderColor: '#ffffff'
-                            }]
+                            datasets: [{ data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 2, borderColor: '#fff' }]
                         },
-                        options: {
-                            responsive: false,
-                            animation: false,
-                            plugins: {
-                                title: { display: true, text: 'Route Distribution', font: { size: 18, weight: 'bold' } },
-                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
-                            }
-                        }
+                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'התפלגות מסלולים', font: { size: 18, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } } } }
                     });
+                    await new Promise(r => setTimeout(r, 150));
+                    chartImages.pie = canvas1.toDataURL('image/png');
+                    pieChart.destroy(); document.body.removeChild(canvas1);
 
-                    // Wait for chart to render
-                    await new Promise(r => setTimeout(r, 100));
-
-                    const pieImage = canvas.toDataURL('image/png');
-                    doc.addImage(pieImage, 'PNG', 25, 90, 160, 112);
-
-                    chart.destroy();
-                    document.body.removeChild(canvas);
-
-                    // --- Bar Chart: Trips per Route ---
+                    // Bar chart
                     const canvas2 = document.createElement('canvas');
-                    canvas2.width = 500;
-                    canvas2.height = 300;
+                    canvas2.width = 500; canvas2.height = 300;
                     document.body.appendChild(canvas2);
-
                     const barChart = new Chart(canvas2, {
                         type: 'bar',
                         data: {
                             labels: routeEntries.map(([route]) => route),
-                            datasets: [{
-                                label: 'Number of Trips',
-                                data: routeEntries.map(([, count]) => count),
-                                backgroundColor: chartColors.slice(0, routeEntries.length),
-                                borderWidth: 1,
-                                borderColor: '#e5e7eb',
-                                borderRadius: 6
-                            }]
+                            datasets: [{ label: 'מספר נסיעות', data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }]
                         },
-                        options: {
-                            responsive: false,
-                            animation: false,
-                            plugins: {
-                                title: { display: true, text: 'Trips per Route', font: { size: 18, weight: 'bold' } },
-                                legend: { display: false }
-                            },
-                            scales: {
-                                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                            }
-                        }
+                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות לפי מסלול', font: { size: 18, weight: 'bold' } }, legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
                     });
+                    await new Promise(r => setTimeout(r, 150));
+                    chartImages.bar = canvas2.toDataURL('image/png');
+                    barChart.destroy(); document.body.removeChild(canvas2);
 
-                    await new Promise(r => setTimeout(r, 100));
-
-                    const barImage = canvas2.toDataURL('image/png');
-
-                    // --- Page 2: Bar chart + Route table ---
-                    doc.addPage();
-
-                    // Header
-                    doc.setFillColor(...primaryColor);
-                    doc.rect(0, 0, 210, 20, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(12);
-                    doc.text(`${monthName} ${year} - Details`, 105, 13, { align: 'center' });
-
-                    doc.addImage(barImage, 'PNG', 25, 28, 160, 96);
-
-                    barChart.destroy();
-                    document.body.removeChild(canvas2);
-
-                    // --- Doughnut Chart: Active vs Cancelled ---
+                    // Doughnut chart
                     const canvas3 = document.createElement('canvas');
-                    canvas3.width = 400;
-                    canvas3.height = 300;
+                    canvas3.width = 400; canvas3.height = 300;
                     document.body.appendChild(canvas3);
-
-                    const activeCount = reportData.totalScheduled - reportData.totalCancellations;
                     const doughnutChart = new Chart(canvas3, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Active Rides', 'Cancellations'],
-                            datasets: [{
-                                data: [activeCount, reportData.totalCancellations],
-                                backgroundColor: ['#10b981', '#ef4444'],
-                                borderWidth: 2,
-                                borderColor: '#ffffff'
-                            }]
+                            labels: ['נסיעות פעילות', 'ביטולים'],
+                            datasets: [{ data: [activeCount, reportData.totalCancellations], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 2, borderColor: '#fff' }]
                         },
-                        options: {
-                            responsive: false,
-                            animation: false,
-                            plugins: {
-                                title: { display: true, text: 'Active vs Cancelled', font: { size: 18, weight: 'bold' } },
-                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
-                            }
-                        }
+                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות פעילות מול ביטולים', font: { size: 18, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } } } }
                     });
-
-                    await new Promise(r => setTimeout(r, 100));
-
-                    const doughnutImage = canvas3.toDataURL('image/png');
-                    doc.addImage(doughnutImage, 'PNG', 35, 130, 140, 105);
-
-                    doughnutChart.destroy();
-                    document.body.removeChild(canvas3);
-
-                    // --- Route Details Table on page 2 ---
-                    let tableY = 242;
-
-                    // Table header
-                    doc.setFillColor(...primaryColor);
-                    doc.rect(25, tableY, 160, 10, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(10);
-                    doc.text('Route', 35, tableY + 7);
-                    doc.text('Trips', 105, tableY + 7);
-                    doc.text('% of Total', 145, tableY + 7);
-
-                    tableY += 10;
-
-                    // Table rows
-                    routeEntries.forEach(([route, count], i) => {
-                        const percentage = reportData.totalTrips > 0
-                            ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
-
-                        if (i % 2 === 0) {
-                            doc.setFillColor(245, 247, 250);
-                            doc.rect(25, tableY, 160, 9, 'F');
-                        }
-
-                        doc.setTextColor(60, 60, 60);
-                        doc.setFontSize(10);
-                        doc.text(routeToEnglish(route), 35, tableY + 6);
-                        doc.text(count.toString(), 105, tableY + 6);
-                        doc.text(`${percentage}%`, 145, tableY + 6);
-
-                        tableY += 9;
-                    });
+                    await new Promise(r => setTimeout(r, 150));
+                    chartImages.doughnut = canvas3.toDataURL('image/png');
+                    doughnutChart.destroy(); document.body.removeChild(canvas3);
                 }
 
-                // Footer on all pages
-                const pageCount = doc.getNumberOfPages();
-                for (let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
-                    doc.setFontSize(8);
-                    doc.setTextColor(150, 150, 150);
-                    doc.text(`Page ${i} / ${pageCount}`, 105, 290, { align: 'center' });
-                }
+                // --- Build HTML report ---
+                const container = document.createElement('div');
+                container.id = 'pdf-report-container';
+                container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;font-family:Arial,sans-serif;direction:rtl;text-align:right;background:#fff;color:#333;';
 
-                // Save
-                const filename = `transport_report_${monthName}_${year}.pdf`;
-                doc.save(filename);
+                // Stats data
+                const stats = [
+                    { label: 'סה"כ נסיעות', value: reportData.totalTrips, color: '#1e3a8a' },
+                    { label: 'ממוצע נוסעים לנסיעה', value: reportData.avgPassengersPerTrip, color: '#10b981' },
+                    { label: 'המסלול הפעיל ביותר', value: reportData.mostUsedRoute, color: '#fbbf24' },
+                    { label: 'אחוז ביטולים', value: reportData.cancellationRate + '%', color: '#ef4444' }
+                ];
+
+                const statsHtml = stats.map(s => `
+                    <div style="flex:1;background:${s.color};color:#fff;border-radius:10px;padding:16px 10px;text-align:center;min-width:0;">
+                        <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${s.value}</div>
+                        <div style="font-size:11px;">${s.label}</div>
+                    </div>
+                `).join('');
+
+                // Route table rows
+                const tableRows = routeEntries.map(([route, count], i) => {
+                    const pct = reportData.totalTrips > 0 ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
+                    const bg = i % 2 === 0 ? '#f5f7fa' : '#fff';
+                    return `<tr style="background:${bg};">
+                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${route}</td>
+                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:center;">${count}</td>
+                        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:center;">${pct}%</td>
+                    </tr>`;
+                }).join('');
+
+                container.innerHTML = `
+                    <!-- Page 1: Header + Stats + Pie Chart -->
+                    <div style="padding:0;">
+                        <div style="background:#1e3a8a;padding:24px 20px;text-align:center;color:#fff;border-radius:0;">
+                            <div style="font-size:26px;font-weight:bold;margin-bottom:6px;">${monthName} ${year}</div>
+                            <div style="font-size:16px;">דוח הסעות חודשי</div>
+                        </div>
+                        <div style="display:flex;gap:12px;padding:20px 20px 10px 20px;">
+                            ${statsHtml}
+                        </div>
+                        ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
+                    </div>
+
+                    <!-- Page 2: Bar Chart + Doughnut + Table -->
+                    <div style="page-break-before:always;padding:0;">
+                        <div style="background:#1e3a8a;padding:12px 20px;text-align:center;color:#fff;">
+                            <div style="font-size:14px;">${monthName} ${year} - פירוט</div>
+                        </div>
+                        ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
+                        ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
+                        <div style="padding:20px;">
+                            <table style="width:100%;border-collapse:collapse;direction:rtl;text-align:right;">
+                                <thead>
+                                    <tr style="background:#1e3a8a;color:#fff;">
+                                        <th style="padding:8px 12px;text-align:right;">מסלול</th>
+                                        <th style="padding:8px 12px;text-align:center;">נסיעות</th>
+                                        <th style="padding:8px 12px;text-align:center;">אחוז מהסה"כ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(container);
+
+                // --- Generate PDF ---
+                const filename = `דוח_הסעות_${monthName}_${year}.pdf`;
+                await html2pdf().set({
+                    margin: 0,
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css'] }
+                }).from(container).save();
+
+                // Clean up - remove the temporary HTML
+                document.body.removeChild(container);
 
                 showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
             } catch (error) {
