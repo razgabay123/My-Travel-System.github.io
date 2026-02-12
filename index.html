@@ -25,7 +25,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- jsPDF + Chart.js for PDF report generation with charts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Leaflet.js - Free OpenStreetMap integration, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -2898,181 +2898,244 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         async function exportMonthlyReportToPDF(year, month, reportData) {
             try {
-                const monthNamesHe = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-                                      'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-                const monthName = monthNamesHe[month - 1];
-                const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
-                const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
-                const activeCount = reportData.totalScheduled - reportData.totalCancellations;
+                const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June',
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = monthNamesEn[month - 1];
 
-                // --- Generate chart images ---
-                const chartImages = {};
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                // Colors matching the app theme
+                const primaryColor = [30, 58, 138]; // COLORS.primary
+                const accentColor = [251, 191, 36]; // COLORS.accent
+                const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
+
+                // Helper to transliterate Hebrew route names for PDF text
+                const routeToEnglish = (route) => {
+                    const map = { 'מסלול א': 'Route A', 'מסלול ב': 'Route B', 'מסלול ג': 'Route C', 'מסלול ד': 'Route D' };
+                    if (map[route]) return map[route];
+                    // For unknown routes, use Route + index letter
+                    return 'Route ' + route.replace(/[^\w\s]/g, '').trim().substring(0, 10);
+                };
+
+                // --- Page 1: Summary ---
+                // Header background
+                doc.setFillColor(...primaryColor);
+                doc.rect(0, 0, 210, 40, 'F');
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(22);
+                doc.text(`${monthName} ${year}`, 105, 18, { align: 'center' });
+                doc.setFontSize(14);
+                doc.text('Monthly Transport Report', 105, 30, { align: 'center' });
+
+                // Summary stats boxes - render as canvas image for Hebrew support
+                const stats = [
+                    { label: 'Total Trips', value: reportData.totalTrips.toString(), color: '#1e3a8a' },
+                    { label: 'Avg Pass./Trip', value: reportData.avgPassengersPerTrip.toString(), color: '#10b981' },
+                    { label: 'Top Route', value: reportData.mostUsedRoute || '-', color: '#fbbf24' },
+                    { label: 'Cancel Rate', value: `${reportData.cancellationRate}%`, color: '#ef4444' }
+                ];
+
+                const statsCanvas = document.createElement('canvas');
+                statsCanvas.width = 800; statsCanvas.height = 100;
+                document.body.appendChild(statsCanvas);
+                const sCtx = statsCanvas.getContext('2d');
+                sCtx.fillStyle = '#fff';
+                sCtx.fillRect(0, 0, 800, 100);
+                const sBoxW = 180, sBoxH = 80, sGap = 12;
+                const sTotalW = stats.length * sBoxW + (stats.length - 1) * sGap;
+                let sx = (800 - sTotalW) / 2;
+                stats.forEach(s => {
+                    sCtx.fillStyle = s.color;
+                    sCtx.beginPath();
+                    sCtx.roundRect(sx, 5, sBoxW, sBoxH, 10);
+                    sCtx.fill();
+                    sCtx.fillStyle = '#fff';
+                    sCtx.font = 'bold 28px Arial';
+                    sCtx.textAlign = 'center';
+                    sCtx.fillText(s.value, sx + sBoxW / 2, 42);
+                    sCtx.font = '14px Arial';
+                    sCtx.fillText(s.label, sx + sBoxW / 2, 65);
+                    sx += sBoxW + sGap;
+                });
+                const statsImage = statsCanvas.toDataURL('image/png');
+                document.body.removeChild(statsCanvas);
+                doc.addImage(statsImage, 'PNG', 10, 45, 190, 24);
+
+                // --- Pie Chart: Route Usage ---
+                const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
 
                 if (routeEntries.length > 0) {
-                    // Pie chart
-                    const canvas1 = document.createElement('canvas');
-                    canvas1.width = 500; canvas1.height = 350;
-                    document.body.appendChild(canvas1);
-                    const pieChart = new Chart(canvas1, {
+                    // Create offscreen canvas for pie chart
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 500;
+                    canvas.height = 350;
+                    document.body.appendChild(canvas);
+
+                    const chart = new Chart(canvas, {
                         type: 'pie',
                         data: {
                             labels: routeEntries.map(([route]) => route),
-                            datasets: [{ data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 2, borderColor: '#fff' }]
+                            datasets: [{
+                                data: routeEntries.map(([, count]) => count),
+                                backgroundColor: chartColors.slice(0, routeEntries.length),
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
                         },
-                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'התפלגות מסלולים', font: { size: 18, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } } } }
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Route Distribution', font: { size: 18, weight: 'bold' } },
+                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
+                            }
+                        }
                     });
-                    await new Promise(r => setTimeout(r, 150));
-                    chartImages.pie = canvas1.toDataURL('image/png');
-                    pieChart.destroy(); document.body.removeChild(canvas1);
 
-                    // Bar chart
+                    // Wait for chart to render
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const pieImage = canvas.toDataURL('image/png');
+                    doc.addImage(pieImage, 'PNG', 25, 90, 160, 112);
+
+                    chart.destroy();
+                    document.body.removeChild(canvas);
+
+                    // --- Bar Chart: Trips per Route ---
                     const canvas2 = document.createElement('canvas');
-                    canvas2.width = 500; canvas2.height = 300;
+                    canvas2.width = 500;
+                    canvas2.height = 300;
                     document.body.appendChild(canvas2);
+
                     const barChart = new Chart(canvas2, {
                         type: 'bar',
                         data: {
                             labels: routeEntries.map(([route]) => route),
-                            datasets: [{ label: 'מספר נסיעות', data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }]
+                            datasets: [{
+                                label: 'Number of Trips',
+                                data: routeEntries.map(([, count]) => count),
+                                backgroundColor: chartColors.slice(0, routeEntries.length),
+                                borderWidth: 1,
+                                borderColor: '#e5e7eb',
+                                borderRadius: 6
+                            }]
                         },
-                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות לפי מסלול', font: { size: 18, weight: 'bold' } }, legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Trips per Route', font: { size: 18, weight: 'bold' } },
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                            }
+                        }
                     });
-                    await new Promise(r => setTimeout(r, 150));
-                    chartImages.bar = canvas2.toDataURL('image/png');
-                    barChart.destroy(); document.body.removeChild(canvas2);
 
-                    // Doughnut chart
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const barImage = canvas2.toDataURL('image/png');
+
+                    // --- Page 2: Bar chart + Route table ---
+                    doc.addPage();
+
+                    // Header
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(0, 0, 210, 20, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(12);
+                    doc.text(`${monthName} ${year} - Details`, 105, 13, { align: 'center' });
+
+                    doc.addImage(barImage, 'PNG', 25, 28, 160, 96);
+
+                    barChart.destroy();
+                    document.body.removeChild(canvas2);
+
+                    // --- Doughnut Chart: Active vs Cancelled ---
                     const canvas3 = document.createElement('canvas');
-                    canvas3.width = 400; canvas3.height = 300;
+                    canvas3.width = 400;
+                    canvas3.height = 300;
                     document.body.appendChild(canvas3);
+
+                    const activeCount = reportData.totalScheduled - reportData.totalCancellations;
                     const doughnutChart = new Chart(canvas3, {
                         type: 'doughnut',
                         data: {
-                            labels: ['נסיעות פעילות', 'ביטולים'],
-                            datasets: [{ data: [activeCount, reportData.totalCancellations], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 2, borderColor: '#fff' }]
+                            labels: ['Active Rides', 'Cancellations'],
+                            datasets: [{
+                                data: [activeCount, reportData.totalCancellations],
+                                backgroundColor: ['#10b981', '#ef4444'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
                         },
-                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות פעילות מול ביטולים', font: { size: 18, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } } } }
+                        options: {
+                            responsive: false,
+                            animation: false,
+                            plugins: {
+                                title: { display: true, text: 'Active vs Cancelled', font: { size: 18, weight: 'bold' } },
+                                legend: { position: 'bottom', labels: { font: { size: 13 }, padding: 15 } }
+                            }
+                        }
                     });
-                    await new Promise(r => setTimeout(r, 150));
-                    chartImages.doughnut = canvas3.toDataURL('image/png');
-                    doughnutChart.destroy(); document.body.removeChild(canvas3);
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const doughnutImage = canvas3.toDataURL('image/png');
+                    doc.addImage(doughnutImage, 'PNG', 35, 130, 140, 105);
+
+                    doughnutChart.destroy();
+                    document.body.removeChild(canvas3);
+
+                    // --- Route Details Table on page 2 ---
+                    let tableY = 242;
+
+                    // Table header
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(25, tableY, 160, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.text('Route', 35, tableY + 7);
+                    doc.text('Trips', 105, tableY + 7);
+                    doc.text('% of Total', 145, tableY + 7);
+
+                    tableY += 10;
+
+                    // Table rows
+                    routeEntries.forEach(([route, count], i) => {
+                        const percentage = reportData.totalTrips > 0
+                            ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
+
+                        if (i % 2 === 0) {
+                            doc.setFillColor(245, 247, 250);
+                            doc.rect(25, tableY, 160, 9, 'F');
+                        }
+
+                        doc.setTextColor(60, 60, 60);
+                        doc.setFontSize(10);
+                        doc.text(routeToEnglish(route), 35, tableY + 6);
+                        doc.text(count.toString(), 105, tableY + 6);
+                        doc.text(`${percentage}%`, 145, tableY + 6);
+
+                        tableY += 9;
+                    });
                 }
 
-                // --- Render header+stats as canvas image (for Hebrew support) ---
-                const headerCanvas = document.createElement('canvas');
-                headerCanvas.width = 800; headerCanvas.height = 200;
-                const hCtx = headerCanvas.getContext('2d');
+                // Footer on all pages
+                const pageCount = doc.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Page ${i} / ${pageCount}`, 105, 290, { align: 'center' });
+                }
 
-                // Header background
-                hCtx.fillStyle = '#1e3a8a';
-                hCtx.fillRect(0, 0, 800, 80);
-                hCtx.fillStyle = '#fff';
-                hCtx.font = 'bold 32px Arial';
-                hCtx.textAlign = 'center';
-                hCtx.fillText(`${monthName} ${year}`, 400, 38);
-                hCtx.font = '20px Arial';
-                hCtx.fillText('דוח הסעות חודשי', 400, 65);
-
-                // Stats boxes
-                const stats = [
-                    { label: 'סה"כ נסיעות', value: String(reportData.totalTrips), color: '#1e3a8a' },
-                    { label: 'ממוצע נוסעים', value: String(reportData.avgPassengersPerTrip), color: '#10b981' },
-                    { label: 'מסלול פעיל', value: String(reportData.mostUsedRoute), color: '#fbbf24' },
-                    { label: 'אחוז ביטולים', value: reportData.cancellationRate + '%', color: '#ef4444' }
-                ];
-                const boxW = 175, boxH = 70, boxGap = 15;
-                const totalW = stats.length * boxW + (stats.length - 1) * boxGap;
-                let bx = (800 - totalW) / 2;
-                const by = 100;
-                stats.forEach(s => {
-                    hCtx.fillStyle = s.color;
-                    hCtx.beginPath();
-                    hCtx.roundRect(bx, by, boxW, boxH, 10);
-                    hCtx.fill();
-                    hCtx.fillStyle = '#fff';
-                    hCtx.font = 'bold 26px Arial';
-                    hCtx.textAlign = 'center';
-                    hCtx.fillText(s.value, bx + boxW / 2, by + 32);
-                    hCtx.font = '14px Arial';
-                    hCtx.fillText(s.label, bx + boxW / 2, by + 55);
-                    bx += boxW + boxGap;
-                });
-                chartImages.header = headerCanvas.toDataURL('image/png');
-
-                // --- Render page 2 header as canvas ---
-                const header2Canvas = document.createElement('canvas');
-                header2Canvas.width = 800; header2Canvas.height = 40;
-                const h2Ctx = header2Canvas.getContext('2d');
-                h2Ctx.fillStyle = '#1e3a8a';
-                h2Ctx.fillRect(0, 0, 800, 40);
-                h2Ctx.fillStyle = '#fff';
-                h2Ctx.font = '18px Arial';
-                h2Ctx.textAlign = 'center';
-                h2Ctx.fillText(`${monthName} ${year} - פירוט`, 400, 26);
-                chartImages.header2 = header2Canvas.toDataURL('image/png');
-
-                // --- Render route table as canvas ---
-                const rowH = 32;
-                const tblH = 36 + routeEntries.length * rowH + 10;
-                const tblCanvas = document.createElement('canvas');
-                tblCanvas.width = 800; tblCanvas.height = tblH;
-                const tCtx = tblCanvas.getContext('2d');
-                tCtx.fillStyle = '#fff';
-                tCtx.fillRect(0, 0, 800, tblH);
-
-                // Table header
-                tCtx.fillStyle = '#1e3a8a';
-                tCtx.fillRect(20, 0, 760, 36);
-                tCtx.fillStyle = '#fff';
-                tCtx.font = 'bold 15px Arial';
-                tCtx.textAlign = 'center';
-                tCtx.fillText('אחוז מהסה"כ', 120, 24);
-                tCtx.fillText('נסיעות', 320, 24);
-                tCtx.fillText('מסלול', 600, 24);
-
-                // Table rows
-                routeEntries.forEach(([route, count], i) => {
-                    const pct = reportData.totalTrips > 0 ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
-                    const ry = 36 + i * rowH;
-                    tCtx.fillStyle = i % 2 === 0 ? '#f5f7fa' : '#fff';
-                    tCtx.fillRect(20, ry, 760, rowH);
-                    tCtx.fillStyle = '#333';
-                    tCtx.font = '14px Arial';
-                    tCtx.textAlign = 'center';
-                    tCtx.fillText(pct + '%', 120, ry + 21);
-                    tCtx.fillText(String(count), 320, ry + 21);
-                    tCtx.fillText(route, 600, ry + 21);
-                });
-                chartImages.table = tblCanvas.toDataURL('image/png');
-
-                // --- Build PDF from images only ---
-                const container = document.createElement('div');
-                container.style.cssText = 'position:absolute;left:0;top:0;width:210mm;background:#fff;z-index:99999;overflow:hidden;';
-                container.innerHTML = `
-                    <div style="padding:0;">
-                        <img src="${chartImages.header}" style="width:100%;" />
-                        ${chartImages.pie ? `<div style="text-align:center;padding:10px 20px 0 20px;"><img src="${chartImages.pie}" style="width:100%;max-width:480px;" /></div>` : ''}
-                    </div>
-                    <div style="page-break-before:always;padding:0;">
-                        <img src="${chartImages.header2}" style="width:100%;" />
-                        ${chartImages.bar ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.bar}" style="width:100%;max-width:480px;" /></div>` : ''}
-                        ${chartImages.doughnut ? `<div style="text-align:center;padding:16px 20px 0 20px;"><img src="${chartImages.doughnut}" style="width:100%;max-width:420px;" /></div>` : ''}
-                        <div style="padding:10px 20px;"><img src="${chartImages.table}" style="width:100%;" /></div>
-                    </div>
-                `;
-                document.body.appendChild(container);
-
-                const filename = `דוח_הסעות_${monthName}_${year}.pdf`;
-                await html2pdf().set({
-                    margin: 0,
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['css'] }
-                }).from(container).save();
-
-                document.body.removeChild(container);
+                // Save
+                const filename = `transport_report_${monthName}_${year}.pdf`;
+                doc.save(filename);
 
                 showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
             } catch (error) {
@@ -4621,70 +4684,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // Save to localStorage for offline access
             saveEmployees();
 
-            // Check for password reset token in URL
-            checkResetTokenInURL();
-
             // Now render the app
             render();
-        }
-
-        function checkResetTokenInURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const resetToken = urlParams.get('reset');
-
-            if (!resetToken) return;
-
-            // Clean the URL so the token doesn't persist on refresh
-            window.history.replaceState({}, document.title, window.location.pathname);
-
-            // Extract email hash from token (format: randomString_emailHash)
-            const parts = resetToken.split('_');
-            if (parts.length < 2) {
-                alert('קישור לא תקין. אנא נסה שוב.');
-                return;
-            }
-            const emailHash = parts[parts.length - 1];
-
-            // Find employee by matching email hash
-            const employee = employees.find(e => {
-                if (!e.email) return false;
-                const empEmailHash = btoa(e.email.toLowerCase().trim()).substring(0, 10);
-                return empEmailHash === emailHash;
-            });
-
-            if (employee) {
-                // Open the password reset modal directly for this employee
-                forgotPasswordModalState.show = true;
-                forgotPasswordModalState.step = 'reset';
-                forgotPasswordModalState.verifiedEmployee = employee;
-            } else {
-                // Try localStorage tokens as fallback (same browser)
-                const resetTokens = JSON.parse(localStorage.getItem('passwordResetTokens') || '{}');
-                const tokenData = resetTokens[resetToken];
-
-                if (tokenData) {
-                    // Check expiration (1 hour)
-                    if (Date.now() - tokenData.timestamp > tokenData.expiresIn) {
-                        delete resetTokens[resetToken];
-                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
-                        alert('הקישור פג תוקף. אנא בקש קישור חדש.');
-                        return;
-                    }
-
-                    const emp = employees.find(e => e.id === tokenData.employeeId);
-                    if (emp) {
-                        forgotPasswordModalState.show = true;
-                        forgotPasswordModalState.step = 'reset';
-                        forgotPasswordModalState.verifiedEmployee = emp;
-
-                        // Clean up used token
-                        delete resetTokens[resetToken];
-                        localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
-                    }
-                } else {
-                    alert('קישור לא תקין או שפג תוקפו. אנא בקש קישור חדש.');
-                }
-            }
         }
 
         // Start the app
