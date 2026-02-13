@@ -1,5 +1,5 @@
 // Service Worker for Transport System PWA
-const CACHE_NAME = 'transport-system-v2'; // Updated version to force cache refresh
+const CACHE_NAME = 'transport-system-v3';
 const urlsToCache = [
   '/manifest.json',
   'https://cdn.tailwindcss.com',
@@ -27,8 +27,11 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - network first for HTML, cache first for assets
 self.addEventListener('fetch', (event) => {
+  // Only handle http/https requests - ignore blob: URLs etc.
+  if (!event.request.url.startsWith('http')) return;
+
   const url = new URL(event.request.url);
-  
+
   // For HTML files: network first, then cache (always get fresh version)
   if (url.pathname.endsWith('.html') || url.pathname === '/') {
     event.respondWith(
@@ -57,7 +60,7 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -68,6 +71,6 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
