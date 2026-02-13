@@ -710,6 +710,8 @@
         // פונקציות עזר
         function showSection(section) {
             currentSection = section;
+            // Reset modal states when navigating
+            addEmployeeModalState.show = false;
             render();
         }
 
@@ -787,6 +789,18 @@
             render();
         }
 
+
+        // Close all modals when page is restored from bfcache (e.g. back navigation from print window)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                addEmployeeModalState.show = false;
+                modalState.show = false;
+                registerModalState.show = false;
+                forgotPasswordModalState.show = false;
+                alertsModalState.show = false;
+                render();
+            }
+        });
 
         // Track previous window width to detect mobile->desktop transition
         let previousWidth = window.innerWidth;
@@ -3727,7 +3741,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
 
-                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
+                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + AlertsModalComponent();
             } else {
                 document.getElementById('app').innerHTML = `
 
@@ -4599,6 +4613,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         // הפעלה ראשונית - Load data then render
         async function initApp() {
+            // Ensure all modals are closed on fresh load
+            addEmployeeModalState.show = false;
+            modalState.show = false;
+            registerModalState.show = false;
+            forgotPasswordModalState.show = false;
+            alertsModalState.show = false;
+
             // Try to load from localStorage first (for offline support)
             loadFromLocalStorage();
 

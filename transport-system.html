@@ -687,6 +687,8 @@
         // פונקציות עזר
         function showSection(section) {
             currentSection = section;
+            // Reset modal states when navigating
+            addEmployeeModalState.show = false;
             render();
         }
 
@@ -763,6 +765,18 @@
             render();
         }
 
+
+        // Close all modals when page is restored from bfcache (e.g. back navigation from print window)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                addEmployeeModalState.show = false;
+                modalState.show = false;
+                registerModalState.show = false;
+                forgotPasswordModalState.show = false;
+                alertsModalState.show = false;
+                render();
+            }
+        });
 
         // Track previous window width to detect mobile->desktop transition
         let previousWidth = window.innerWidth;
@@ -3558,7 +3572,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
 
-                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + SMSModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
+                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + SMSModalComponent() + AlertsModalComponent();
             } else {
                 document.getElementById('app').innerHTML = `
 
@@ -4365,7 +4379,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             if (!addEmployeeModalState.show) return '';
 
             return `
-                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};">
+                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};" onclick="if(event.target === event.currentTarget) { addEmployeeModalState.show = false; render(); }">
                     <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
                         <div class="p-8">
                             <div class="text-center mb-6">
