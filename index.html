@@ -3037,7 +3037,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         <div class="footer">דוח הסעות - ${monthName} ${year} | הופק אוטומטית ממערכת ניהול ההסעות</div>
     </div>
 
-    <button class="print-btn no-print" onclick="window.print(); window.onafterprint = function(){ window.close(); };">הדפס / שמור כ-PDF</button>
+    <button class="print-btn no-print" onclick="doPrintAndClose()">הדפס / שמור כ-PDF</button>
+    <script>
+        function doPrintAndClose() {
+            window.onafterprint = function() { window.close(); };
+            window.print();
+            // Fallback: close when window regains focus (user closed print dialog)
+            window.onfocus = function() { setTimeout(function(){ window.close(); }, 500); };
+        }
+    </script>
 </body>
 </html>`;
 
