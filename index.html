@@ -3037,7 +3037,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         <div class="footer">דוח הסעות - ${monthName} ${year} | הופק אוטומטית ממערכת ניהול ההסעות</div>
     </div>
 
-    <button class="print-btn no-print" onclick="window.print()">הדפס / שמור כ-PDF</button>
+    <button class="print-btn no-print" onclick="window.print(); window.onafterprint = function(){ window.close(); };">הדפס / שמור כ-PDF</button>
 </body>
 </html>`;
 
