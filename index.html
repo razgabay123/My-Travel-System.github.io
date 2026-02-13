@@ -4396,7 +4396,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             if (!addEmployeeModalState.show) return '';
 
             return `
-                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};">
+                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};" onclick="if(event.target === event.currentTarget) { addEmployeeModalState.show = false; render(); }">
                     <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
                         <div class="p-8">
                             <div class="text-center mb-6">
