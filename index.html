@@ -24,9 +24,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Chart.js for report charts + html2pdf for PDF export -->
+    <!-- Chart.js for report charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Leaflet.js - Free OpenStreetMap integration, no API key needed -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2900,13 +2899,44 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             try {
                 const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
                                     'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-                const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June',
-                                      'July', 'August', 'September', 'October', 'November', 'December'];
                 const monthName = monthNames[month - 1];
-                const monthNameEn = monthNamesEn[month - 1];
                 const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
                 const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
                 const activeCount = reportData.totalScheduled - reportData.totalCancellations;
+
+                // --- Render charts locally as base64 images FIRST ---
+                const renderChart = (config, width, height) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    document.body.appendChild(canvas);
+                    const chart = new Chart(canvas, config);
+                    const img = canvas.toDataURL('image/png');
+                    chart.destroy();
+                    document.body.removeChild(canvas);
+                    return img;
+                };
+
+                let pieImage = '', barImage = '';
+                if (routeEntries.length > 0) {
+                    pieImage = renderChart({
+                        type: 'pie',
+                        data: { labels: routeEntries.map(([r]) => r), datasets: [{ data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 2, borderColor: '#fff' }] },
+                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'התפלגות מסלולים', font: { size: 15, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
+                    }, 400, 320);
+
+                    barImage = renderChart({
+                        type: 'bar',
+                        data: { labels: routeEntries.map(([r]) => r), datasets: [{ label: 'נסיעות', data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }] },
+                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות לפי מסלול', font: { size: 15, weight: 'bold' } }, legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                    }, 400, 320);
+                }
+
+                const doughnutImage = renderChart({
+                    type: 'doughnut',
+                    data: { labels: ['נסיעות פעילות', 'ביטולים'], datasets: [{ data: [activeCount, reportData.totalCancellations], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 2, borderColor: '#fff' }] },
+                    options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'פעילות מול ביטולים', font: { size: 15, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
+                }, 350, 300);
 
                 // Build route table rows
                 const routeRows = routeEntries.map(([route, count], i) => {
@@ -2919,122 +2949,108 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     </tr>`;
                 }).join('');
 
-                // Create hidden container for the report
-                const container = document.createElement('div');
-                container.id = 'pdf-report-container';
-                container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;direction:rtl;font-family:Arial,sans-serif;color:#333;';
-                container.innerHTML = `
-                    <div style="background:#1e3a8a;color:#fff;padding:24px 40px;text-align:center">
-                        <div style="font-size:28px;font-weight:bold;margin-bottom:6px">דוח הסעות חודשי</div>
-                        <div style="font-size:16px;opacity:0.9">${monthName} ${year}</div>
-                    </div>
-                    <div style="padding:24px 40px">
-                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
-                            <div style="border-radius:10px;padding:16px;text-align:center;color:#fff;background:#1e3a8a">
-                                <div style="font-size:28px;font-weight:bold;margin-bottom:4px">${reportData.totalTrips}</div>
-                                <div style="font-size:13px;opacity:0.9">סה"כ נסיעות</div>
-                            </div>
-                            <div style="border-radius:10px;padding:16px;text-align:center;color:#fff;background:#10b981">
-                                <div style="font-size:28px;font-weight:bold;margin-bottom:4px">${reportData.avgPassengersPerTrip}</div>
-                                <div style="font-size:13px;opacity:0.9">ממוצע נוסעים לנסיעה</div>
-                            </div>
-                            <div style="border-radius:10px;padding:16px;text-align:center;color:#fff;background:#f59e0b">
-                                <div style="font-size:28px;font-weight:bold;margin-bottom:4px">${reportData.mostUsedRoute || '-'}</div>
-                                <div style="font-size:13px;opacity:0.9">מסלול מוביל</div>
-                            </div>
-                            <div style="border-radius:10px;padding:16px;text-align:center;color:#fff;background:#ef4444">
-                                <div style="font-size:28px;font-weight:bold;margin-bottom:4px">${reportData.cancellationRate}%</div>
-                                <div style="font-size:13px;opacity:0.9">אחוז ביטולים</div>
-                            </div>
-                        </div>
+                // Build pure HTML with embedded images (no external scripts needed)
+                const html = `<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<title>דוח הסעות - ${monthName} ${year}</title>
+<style>
+    @media print {
+        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .no-print { display: none !important; }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, 'Segoe UI', Tahoma, sans-serif; background: #fff; color: #333; direction: rtl; }
+    .header { background: #1e3a8a; color: #fff; padding: 24px 40px; text-align: center; }
+    .header h1 { font-size: 28px; margin-bottom: 6px; }
+    .header h2 { font-size: 16px; font-weight: 400; opacity: 0.9; }
+    .content { padding: 24px 40px; max-width: 800px; margin: 0 auto; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+    .stat-card { border-radius: 10px; padding: 16px; text-align: center; color: #fff; }
+    .stat-card .value { font-size: 28px; font-weight: bold; margin-bottom: 4px; }
+    .stat-card .label { font-size: 13px; opacity: 0.9; }
+    .section-title { font-size: 18px; font-weight: bold; color: #1e3a8a; margin: 20px 0 12px; border-bottom: 2px solid #fbbf24; padding-bottom: 6px; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-container { background: #f9fafb; border-radius: 10px; padding: 16px; text-align: center; }
+    .chart-container img { max-width: 100%; height: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #1e3a8a; color: #fff; padding: 10px 16px; text-align: right; font-size: 14px; }
+    td { font-size: 14px; }
+    .footer { text-align: center; color: #999; font-size: 11px; padding: 20px; border-top: 1px solid #eee; margin-top: 24px; }
+    .print-btn { display: block; margin: 20px auto; padding: 12px 40px; background: #1e3a8a; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .print-btn:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>דוח הסעות חודשי</h1>
+        <h2>${monthName} ${year}</h2>
+    </div>
+    <div class="content">
+        <div class="stats-grid">
+            <div class="stat-card" style="background:#1e3a8a">
+                <div class="value">${reportData.totalTrips}</div>
+                <div class="label">סה"כ נסיעות</div>
+            </div>
+            <div class="stat-card" style="background:#10b981">
+                <div class="value">${reportData.avgPassengersPerTrip}</div>
+                <div class="label">ממוצע נוסעים לנסיעה</div>
+            </div>
+            <div class="stat-card" style="background:#f59e0b">
+                <div class="value">${reportData.mostUsedRoute || '-'}</div>
+                <div class="label">מסלול מוביל</div>
+            </div>
+            <div class="stat-card" style="background:#ef4444">
+                <div class="value">${reportData.cancellationRate}%</div>
+                <div class="label">אחוז ביטולים</div>
+            </div>
+        </div>
 
-                        <div style="font-size:18px;font-weight:bold;color:#1e3a8a;margin:20px 0 12px;border-bottom:2px solid #fbbf24;padding-bottom:6px">התפלגות מסלולים</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-                            <div style="background:#f9fafb;border-radius:10px;padding:16px;text-align:center">
-                                <canvas id="pdfPieChart" width="350" height="280"></canvas>
-                            </div>
-                            <div style="background:#f9fafb;border-radius:10px;padding:16px;text-align:center">
-                                <canvas id="pdfBarChart" width="350" height="280"></canvas>
-                            </div>
-                        </div>
+        ${routeEntries.length > 0 ? `
+        <div class="section-title">התפלגות מסלולים</div>
+        <div class="charts-row">
+            <div class="chart-container"><img src="${pieImage}"></div>
+            <div class="chart-container"><img src="${barImage}"></div>
+        </div>
+        ` : ''}
 
-                        <div style="font-size:18px;font-weight:bold;color:#1e3a8a;margin:20px 0 12px;border-bottom:2px solid #fbbf24;padding-bottom:6px">נסיעות פעילות מול ביטולים</div>
-                        <div style="max-width:350px;margin:0 auto 20px">
-                            <div style="background:#f9fafb;border-radius:10px;padding:16px;text-align:center">
-                                <canvas id="pdfDoughnutChart" width="300" height="250"></canvas>
-                            </div>
-                        </div>
+        <div class="section-title">נסיעות פעילות מול ביטולים</div>
+        <div style="max-width:350px;margin:0 auto 20px">
+            <div class="chart-container"><img src="${doughnutImage}"></div>
+        </div>
 
-                        <div style="font-size:18px;font-weight:bold;color:#1e3a8a;margin:20px 0 12px;border-bottom:2px solid #fbbf24;padding-bottom:6px">פירוט לפי מסלול</div>
-                        <table style="width:100%;border-collapse:collapse;margin-top:8px">
-                            <thead>
-                                <tr>
-                                    <th style="background:#1e3a8a;color:#fff;padding:10px 16px;text-align:right;font-size:14px">מסלול</th>
-                                    <th style="background:#1e3a8a;color:#fff;padding:10px 16px;text-align:center;font-size:14px">מספר נסיעות</th>
-                                    <th style="background:#1e3a8a;color:#fff;padding:10px 16px;text-align:center;font-size:14px">אחוז מהסה"כ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${routeRows || '<tr><td colspan="3" style="text-align:center;padding:16px;color:#999">אין נתונים לחודש זה</td></tr>'}
-                            </tbody>
-                        </table>
+        <div class="section-title">פירוט לפי מסלול</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>מסלול</th>
+                    <th style="text-align:center">מספר נסיעות</th>
+                    <th style="text-align:center">אחוז מהסה"כ</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${routeRows || '<tr><td colspan="3" style="text-align:center;padding:16px;color:#999">אין נתונים לחודש זה</td></tr>'}
+            </tbody>
+        </table>
 
-                        <div style="text-align:center;color:#999;font-size:11px;padding:20px;border-top:1px solid #eee;margin-top:24px">דוח הסעות - ${monthName} ${year} | הופק אוטומטית ממערכת ניהול ההסעות</div>
-                    </div>
-                `;
-                document.body.appendChild(container);
+        <div class="footer">דוח הסעות - ${monthName} ${year} | הופק אוטומטית ממערכת ניהול ההסעות</div>
+    </div>
 
-                // Render charts on the hidden canvases
-                const charts = [];
+    <button class="print-btn no-print" onclick="window.print()">הדפס / שמור כ-PDF</button>
+</body>
+</html>`;
 
-                if (routeEntries.length > 0) {
-                    charts.push(new Chart(document.getElementById('pdfPieChart'), {
-                        type: 'pie',
-                        data: {
-                            labels: routeEntries.map(([r]) => r),
-                            datasets: [{ data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 2, borderColor: '#fff' }]
-                        },
-                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'התפלגות מסלולים', font: { size: 15, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
-                    }));
-
-                    charts.push(new Chart(document.getElementById('pdfBarChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: routeEntries.map(([r]) => r),
-                            datasets: [{ label: 'נסיעות', data: routeEntries.map(([, c]) => c), backgroundColor: chartColors.slice(0, routeEntries.length), borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }]
-                        },
-                        options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'נסיעות לפי מסלול', font: { size: 15, weight: 'bold' } }, legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-                    }));
+                // Open print window
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    showModal('error', 'החלון נחסם. אנא אפשר חלונות קופצים (pop-ups) עבור אתר זה.');
+                    return;
                 }
+                printWindow.document.write(html);
+                printWindow.document.close();
 
-                charts.push(new Chart(document.getElementById('pdfDoughnutChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['נסיעות פעילות', 'ביטולים'],
-                        datasets: [{ data: [activeCount, reportData.totalCancellations], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 2, borderColor: '#fff' }]
-                    },
-                    options: { responsive: false, animation: false, plugins: { title: { display: true, text: 'פעילות מול ביטולים', font: { size: 15, weight: 'bold' } }, legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
-                }));
-
-                // Wait for charts to render
-                await new Promise(r => setTimeout(r, 300));
-
-                // Generate PDF using html2pdf
-                const filename = `transport_report_${monthNameEn}_${year}.pdf`;
-                await html2pdf().set({
-                    margin: 0,
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                }).from(container).save();
-
-                // Cleanup
-                charts.forEach(c => c.destroy());
-                document.body.removeChild(container);
-
-                showModal('success', `הדוח יוצא בהצלחה! הקובץ נשמר כ-${filename}`);
+                showModal('success', 'הדוח נפתח בחלון חדש. לחץ על "הדפס / שמור כ-PDF" או השתמש ב-Ctrl+P.');
             } catch (error) {
                 console.error('Error exporting PDF report:', error);
                 showModal('error', 'שגיאה בייצוא הדוח. אנא נסה שוב.');
@@ -3138,8 +3154,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-center sm:text-right">
                             <h3 class="text-xl font-bold text-gray-800">פירוט לפי מסלול</h3>
                             <button onclick="exportCurrentReport()" class="px-4 py-2 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white text-sm w-full sm:w-auto" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
-                                <i class="fas fa-file-pdf ml-2"></i>
-                                שמור כ-PDF
+                                <i class="fas fa-print ml-2"></i>
+                                הדפס דוח / PDF
                             </button>
                         </div>
 
