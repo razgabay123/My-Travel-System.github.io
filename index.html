@@ -3049,14 +3049,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 </body>
 </html>`;
 
-                // Open print window
-                const printWindow = window.open('', '_blank');
+                // Open as blob URL to avoid service worker intercepting the page
+                const blob = new Blob([html], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const printWindow = window.open(blobUrl, '_blank');
                 if (!printWindow) {
+                    URL.revokeObjectURL(blobUrl);
                     showModal('error', 'החלון נחסם. אנא אפשר חלונות קופצים (pop-ups) עבור אתר זה.');
                     return;
                 }
-                printWindow.document.write(html);
-                printWindow.document.close();
+                // Clean up blob URL after window loads
+                printWindow.onload = () => URL.revokeObjectURL(blobUrl);
 
                 showModal('success', 'הדוח נפתח בחלון חדש. לחץ על "הדפס / שמור כ-PDF" או השתמש ב-Ctrl+P.');
             } catch (error) {
