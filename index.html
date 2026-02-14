@@ -227,9 +227,11 @@
             baseUrl: 'https://razgabay123.github.io' // GitHub Pages URL
         };
 
-        // Backend API Configuration
+        // Backend API Configuration - auto-detect environment
         const API_CONFIG = {
-            baseUrl: 'https://my-travel-system.onrender.com/api'
+            baseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? `http://${window.location.hostname}:3000/api`
+                : 'https://my-travel-system.onrender.com/api'
         };
 
         // נתונים - Load from backend API
@@ -255,7 +257,13 @@
                 return true;
             } catch (error) {
                 console.error('Error loading workers data from API:', error);
-                alert('שגיאה בטעינת נתוני עובדים. ודא שהשרת פועל (npm start בתיקיית backend).');
+                // If we have localStorage data, use that silently
+                const hasLocalData = localStorage.getItem('employees');
+                if (!hasLocalData) {
+                    alert('שגיאה בטעינת נתוני עובדים. ודא שהשרת פועל (npm start בתיקיית backend).');
+                } else {
+                    console.log('Using cached localStorage data (offline mode)');
+                }
                 return false;
             }
         }
@@ -630,9 +638,9 @@
             }
         }
 
-        function saveEmployeeEdit() {
+        async function saveEmployeeEdit() {
             if (!modalState.editEmployee) return;
-            
+
             // Get values from form inputs
             const name = document.getElementById('editName').value.trim();
             const department = document.getElementById('editDepartment').value.trim();
@@ -642,68 +650,88 @@
             const email = document.getElementById('editEmail')?.value.trim() || '';
             const route = document.getElementById('editRoute').value;
             const time = document.getElementById('editTime').value;
-            
+
             if (!name || !address || !city) {
-                alert('אנא מלא את כל השדות החובה');
+                showModal('error', 'אנא מלא את כל השדות החובה');
                 return;
             }
-            
+
             // Validate email format if provided
             if (email && !email.includes('@')) {
-                alert('אנא הזן כתובת אימייל תקינה');
+                showModal('error', 'אנא הזן כתובת אימייל תקינה');
                 return;
             }
-            
+
             const editedEmp = modalState.editEmployee;
             const currentEmployeeId = editedEmp.id;
-            
+
             // Check for duplicate name (excluding current employee)
             const duplicateName = employees.find(e => e.id !== currentEmployeeId && e.name.toLowerCase() === name.toLowerCase());
             if (duplicateName) {
-                alert('שם זה כבר קיים אצל עובד אחר. אנא בחר שם אחר.');
+                showModal('error', 'שם זה כבר קיים אצל עובד אחר. אנא בחר שם אחר.');
                 return;
             }
-            
+
             // Check for duplicate phone (if phone is provided and not empty)
             if (phone) {
                 const duplicatePhone = employees.find(e => e.id !== currentEmployeeId && e.phone && e.phone === phone);
                 if (duplicatePhone) {
-                    alert('מספר טלפון זה כבר קיים אצל עובד אחר. אנא בחר מספר אחר.');
+                    showModal('error', 'מספר טלפון זה כבר קיים אצל עובד אחר. אנא בחר מספר אחר.');
                     return;
                 }
             }
-            
+
             // Check for duplicate email (if email is provided and not empty)
             if (email) {
                 const duplicateEmail = employees.find(e => e.id !== currentEmployeeId && e.email && e.email.toLowerCase() === email.toLowerCase());
                 if (duplicateEmail) {
-                    alert('כתובת אימייל זו כבר קיימת אצל עובד אחר. אנא בחר כתובת אחרת.');
+                    showModal('error', 'כתובת אימייל זו כבר קיימת אצל עובד אחר. אנא בחר כתובת אחרת.');
                     return;
                 }
             }
-            
+
             const index = employees.findIndex(e => e.id === currentEmployeeId);
-            
+
             if (index !== -1) {
-                // Update the employee with new values
-                employees[index] = {
-                    ...employees[index],
-                    name: name,
-                    address: address,
-                    city: city,
-                    phone: phone,
-                    email: email,
-                    route: route,
-                    time: time,
-                    // Preserve company/department logic
-                    company: department || undefined,
-                    department: department || undefined
+                const updatedData = {
+                    name, address, city, phone, email, route, time,
+                    username: employees[index].username,
+                    workerCode: employees[index].workerCode || null,
+                    company: department || null,
+                    department: department || null,
+                    active: employees[index].active !== undefined ? employees[index].active : true
                 };
-                // Save to localStorage
-                saveEmployees();
-                // Close modal and refresh
-                hideModal();
-                render();
+
+                // Sync with backend API
+                try {
+                    const response = await fetch(`${API_CONFIG.baseUrl}/employees/${currentEmployeeId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Update local array
+                        employees[index] = { ...employees[index], ...updatedData };
+                        saveEmployees();
+                        hideModal();
+                        render();
+                        showModal('success', 'העובד עודכן בהצלחה');
+                    } else {
+                        showModal('error', data.error === 'Username or worker code already exists' ?
+                            'שם משתמש או קוד עובד כבר קיים' : 'שגיאה בעדכון עובד. נסה שוב.');
+                    }
+                } catch (error) {
+                    console.error('Update employee error:', error);
+                    // Fallback: save locally even if server is down
+                    employees[index] = { ...employees[index], ...updatedData };
+                    saveEmployees();
+                    hideModal();
+                    render();
+                    showModal('success', 'העובד עודכן מקומית (השרת לא זמין)');
+                }
             }
         }
 
@@ -1880,22 +1908,35 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         function deleteEmployeePermanently(employeeId) {
             const employee = employees.find(e => e.id === employeeId);
             if (!employee) return;
-            
-            showModal('confirm-delete-employee', `האם אתה בטוח שברצונך למחוק את העובד "${employee.name}" לצמיתות? פעולה זו לא ניתנת לביטול.`, () => {
+
+            showModal('confirm-delete-employee', `האם אתה בטוח שברצונך למחוק את העובד "${employee.name}" לצמיתות? פעולה זו לא ניתנת לביטול.`, async () => {
                 const index = employees.findIndex(e => e.id === employeeId);
                 if (index !== -1) {
                     // Check if the deleted employee is the currently logged-in user
                     const isDeletingSelf = loggedInUserId === employeeId;
-                    
+
+                    // Sync with backend API
+                    try {
+                        const response = await fetch(`${API_CONFIG.baseUrl}/employees/${employeeId}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        if (!response.ok || !data.success) {
+                            console.error('Backend delete failed:', data.error);
+                        }
+                    } catch (error) {
+                        console.error('Delete employee API error:', error);
+                    }
+
                     employees.splice(index, 1);
                     saveEmployees();
-                    
+
                     // Also remove from removed workers list
                     const removedWorkers = getRemovedWorkers();
                     delete removedWorkers[employeeId];
                     delete removedWorkers[employeeId.toString()];
                     saveRemovedWorkers(removedWorkers);
-                    
+
                     // If user deleted themselves, log them out and redirect to login
                     if (isDeletingSelf) {
                         loggedInUserId = null;
@@ -1913,6 +1954,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         async function saveNewEmployee() {
             const name = document.getElementById('newEmployeeName').value.trim();
+            const workerCode = document.getElementById('newEmployeeWorkerCode')?.value.trim() || '';
             const department = document.getElementById('newEmployeeDepartment').value.trim();
             const address = document.getElementById('newEmployeeAddress').value.trim();
             const city = document.getElementById('newEmployeeCity').value.trim();
@@ -1979,7 +2021,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     body: JSON.stringify({
                         username, password, name, department,
                         company: department, address, city, phone,
-                        email: email || null, route, time, active: true
+                        email: email || null, route, time, active: true,
+                        workerCode: workerCode || null
                     })
                 });
 
@@ -1991,7 +2034,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         id: data.id,
                         name, department, company: department,
                         address, city, phone, email, route, time,
-                        active: true, username
+                        active: true, username,
+                        workerCode: workerCode || null
                     });
 
                     addEmployeeModalState.show = false;
@@ -2900,7 +2944,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
                                     'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
                 const monthName = monthNames[month - 1];
-                const chartColors = ['#1e3a8a', '#fbbf24', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
+                const chartColors = ['#507480', '#FFCA0F', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
                 const routeEntries = Object.entries(reportData.routeUsage).sort((a, b) => b[1] - a[1]);
                 const activeCount = reportData.totalScheduled - reportData.totalCancellations;
 
@@ -2930,7 +2974,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, 'Segoe UI', Tahoma, sans-serif; background: #fff; color: #333; direction: rtl; }
-    .header { background: #1e3a8a; color: #fff; padding: 24px 40px; text-align: center; }
+    .header { background: #507480; color: #fff; padding: 24px 40px; text-align: center; }
     .header h1 { font-size: 28px; margin-bottom: 6px; }
     .header h2 { font-size: 16px; font-weight: 400; opacity: 0.9; }
     .content { padding: 24px 40px; max-width: 800px; margin: 0 auto; }
@@ -2938,15 +2982,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
     .stat-card { border-radius: 10px; padding: 16px; text-align: center; color: #fff; }
     .stat-card .value { font-size: 28px; font-weight: bold; margin-bottom: 4px; }
     .stat-card .label { font-size: 13px; opacity: 0.9; }
-    .section-title { font-size: 18px; font-weight: bold; color: #1e3a8a; margin: 20px 0 12px; border-bottom: 2px solid #fbbf24; padding-bottom: 6px; }
+    .section-title { font-size: 18px; font-weight: bold; color: #507480; margin: 20px 0 12px; border-bottom: 2px solid #FFCA0F; padding-bottom: 6px; }
     .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .chart-container { background: #f9fafb; border-radius: 10px; padding: 16px; text-align: center; }
     .chart-container canvas { max-width: 100%; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th { background: #1e3a8a; color: #fff; padding: 10px 16px; text-align: right; font-size: 14px; }
+    th { background: #507480; color: #fff; padding: 10px 16px; text-align: right; font-size: 14px; }
     td { font-size: 14px; }
     .footer { text-align: center; color: #999; font-size: 11px; padding: 20px; border-top: 1px solid #eee; margin-top: 24px; }
-    .print-btn { display: block; margin: 20px auto; padding: 12px 40px; background: #1e3a8a; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .print-btn { display: block; margin: 20px auto; padding: 12px 40px; background: #507480; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
     .print-btn:hover { opacity: 0.9; }
 </style>
 </head>
@@ -2957,21 +3001,21 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
     </div>
     <div class="content">
         <div class="stats-grid">
-            <div class="stat-card" style="background:#1e3a8a">
+            <div class="stat-card" style="background:#507480">
                 <div class="value">${reportData.totalTrips}</div>
                 <div class="label">סה"כ נסיעות</div>
             </div>
-            <div class="stat-card" style="background:#10b981">
+            <div class="stat-card" style="background:#507480">
                 <div class="value">${reportData.avgPassengersPerTrip}</div>
                 <div class="label">ממוצע נוסעים לנסיעה</div>
             </div>
-            <div class="stat-card" style="background:#f59e0b">
+            <div class="stat-card" style="background:#FFCA0F; color:#507480">
                 <div class="value">${reportData.mostUsedRoute || '-'}</div>
-                <div class="label">מסלול מוביל</div>
+                <div class="label" style="color:#507480">מסלול מוביל</div>
             </div>
-            <div class="stat-card" style="background:#ef4444">
+            <div class="stat-card" style="background:#FFCA0F; color:#507480">
                 <div class="value">${reportData.cancellationRate}%</div>
-                <div class="label">אחוז ביטולים</div>
+                <div class="label" style="color:#507480">אחוז ביטולים</div>
             </div>
         </div>
 
@@ -4448,7 +4492,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                         <label class="block text-gray-700 font-medium mb-2">שם *</label>
                                         <input type="text" id="newEmployeeName" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" required>
                                     </div>
-                                    
+
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">קוד עובד</label>
+                                        <input type="text" id="newEmployeeWorkerCode" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="קוד עובד ייחודי (אופציונלי)">
+                                    </div>
+
                                     <div>
                                         <label class="block text-gray-700 font-medium mb-2">חברה/מחלקה</label>
                                         <input type="text" id="newEmployeeDepartment" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};">
@@ -4649,6 +4698,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // Now render the app
             render();
         }
+
+        // Re-sync with backend when coming back online
+        window.addEventListener('online', async () => {
+            console.log('Back online - syncing with backend...');
+            const loaded = await loadWorkersData();
+            if (loaded) {
+                saveEmployees();
+                render();
+                console.log('Data synced with backend successfully');
+            }
+        });
 
         // Start the app
         initApp();
