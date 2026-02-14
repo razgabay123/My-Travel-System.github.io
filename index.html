@@ -189,7 +189,7 @@
 </head>
 <body class="bg-gray-100">
     <!-- Yellow Ribbon Download Button -->
-    <div id="downloadAppRibbon" onclick="handleDownloadAPK(event)" title="הורדת האפליקציה">
+    <div id="downloadAppRibbon" onclick="handleAppInstall(event)" title="הורדת האפליקציה">
         <i class="fas fa-car"></i>
         <span>להורדת האפליקציה</span>
     </div>
@@ -4588,22 +4588,31 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             });
         }
 
-        // Download APK Handler
-        function handleDownloadAPK(event) {
-            // Prevent any default behavior
+        // App Install Handler - APK for Android, Home Screen for iOS
+        function handleAppInstall(event) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-            
-            // Check if APK exists first
+
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPhone|iPad|iPod/.test(ua);
+
+            // iOS: show "Add to Home Screen" instructions
+            if (isIOS) {
+                showIOSInstallInstructions();
+                return;
+            }
+
+            // Android/others: download APK
+            handleDownloadAPK();
+        }
+
+        function handleDownloadAPK() {
             const apkUrl = '/transport-system.apk';
-            
-            // Try to fetch the APK to see if it exists
             fetch(apkUrl, { method: 'HEAD' })
                 .then(response => {
                     if (response.ok) {
-                        // APK exists - download it directly
                         const link = document.createElement('a');
                         link.href = apkUrl;
                         link.download = 'transport-system.apk';
@@ -4612,77 +4621,45 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         link.click();
                         document.body.removeChild(link);
                     } else {
-                        // APK doesn't exist - show instructions
-                        showPWABuilderInstructions();
+                        showModal('error', 'קובץ ה-APK לא נמצא. נסה שוב מאוחר יותר.');
                     }
                 })
                 .catch(() => {
-                    // APK doesn't exist or error - show instructions
-                    showPWABuilderInstructions();
+                    showModal('error', 'שגיאה בהורדת האפליקציה. נסה שוב מאוחר יותר.');
                 });
         }
-        
-        function showPWABuilderInstructions() {
-            const siteUrl = EMAIL_CONFIG.baseUrl || 'https://razgabay123.github.io';
+
+        function showIOSInstallInstructions() {
             const instructions = `
                 <div style="text-align: right; direction: rtl; line-height: 1.8;">
                     <h3 style="color: ${COLORS.primary}; margin-bottom: 20px; font-size: 20px;">
                         <i class="fas fa-mobile-alt ml-2"></i>
-                        הוראות בניית APK:
+                        שמירה למסך הבית (iPhone)
                     </h3>
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
-                            שלב 1: פתח את PWABuilder
-                        </p>
-                        <p style="margin-bottom: 15px;">
-                            לחץ על הכפתור למטה או היכנס ל: 
-                            <a href="https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}" target="_blank" style="color: ${COLORS.primary}; text-decoration: underline;">PWABuilder.com</a>
-                        </p>
-                        
-                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
-                            שלב 2: בנה את ה-APK
-                        </p>
-                        <ol style="list-style: decimal; padding-right: 25px; margin-bottom: 15px;">
-                            <li>לחץ על הכפתור <strong style="color: ${COLORS.primary}; font-size: 16px;">"Package for Stores"</strong></li>
-                            <li>בחר <strong>"Android"</strong> מהרשימה</li>
-                            <li>לחץ על <strong>"Generate Package"</strong> או <strong>"Download"</strong></li>
-                            <li>המתן לסיום הבנייה (1-2 דקות)</li>
-                            <li>הורד את קובץ ה-APK</li>
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+                        <ol style="list-style: none; padding: 0; margin: 0;">
+                            <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+                                <span>לחץ על כפתור <strong>השיתוף</strong> <i class="fas fa-share-square" style="color: ${COLORS.primary};"></i> בתחתית המסך (Safari)</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+                                <span>גלול למטה ובחר <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 12px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+                                <span>לחץ <strong>"הוסף"</strong> בפינה הימנית העליונה</span>
+                            </li>
                         </ol>
-                        <p style="background: #e7f3ff; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 14px; border-right: 4px solid ${COLORS.primary};">
-                            <strong>📱 הערה:</strong> הכפתור <strong>"Download Test Package"</strong> הוא לבדיקות בלבד. 
-                            <br>לבניית APK מלא, השתמש ב-<strong>"Package for Stores"</strong>
+                        <p style="background: ${COLORS.accent}22; padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; border-right: 4px solid ${COLORS.accent};">
+                            <strong style="color: ${COLORS.primary};">שים לב:</strong> יש לפתוח את האתר דרך <strong>Safari</strong> בלבד. דפדפנים אחרים באייפון לא תומכים בתכונה זו.
                         </p>
-                        
-                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
-                            שלב 3: חלץ את ה-APK מה-ZIP
-                        </p>
-                        <ol style="list-style: decimal; padding-right: 25px; margin-bottom: 15px;">
-                            <li>פתח את קובץ ה-ZIP שהורדת</li>
-                            <li>חפש בתוך התיקייה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">.apk</code></li>
-                            <li>הוצא את קובץ ה-APK מהתיקייה</li>
-                            <li>שנה את שמו ל-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code></li>
-                        </ol>
-                        
-                        <p style="margin-bottom: 10px; font-weight: bold; color: ${COLORS.primary};">
-                            שלב 4: העלה את הקובץ
-                        </p>
-                        <p>
-                            העלה את קובץ ה-<code style="background: white; padding: 2px 6px; border-radius: 4px;">transport-system.apk</code> לתיקיית הפרויקט ב-GitHub (אותה תיקייה שבה נמצא transport-system.html).
-                        </p>
-                    </div>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <a href="https://www.pwabuilder.com/?url=${encodeURIComponent(siteUrl)}" target="_blank" 
-                           style="display: inline-block; padding: 12px 24px; background: ${COLORS.accent}; color: ${COLORS.primary}; 
-                                  text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                            <i class="fas fa-external-link-alt ml-2"></i>
-                            פתח PWABuilder
-                        </a>
                     </div>
                 </div>
             `;
             showModal('info', instructions);
         }
+
 
         // הפעלה ראשונית - Load data then render
         async function initApp() {
