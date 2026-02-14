@@ -189,9 +189,9 @@
 </head>
 <body class="bg-gray-100">
     <!-- Yellow Ribbon Download Button -->
-    <div id="downloadAppRibbon" onclick="handleAppInstall(event)" title="הורדת האפליקציה">
-        <i class="fas fa-car"></i>
-        <span>להורדת האפליקציה</span>
+    <div id="downloadAppRibbon" onclick="handleAppInstall(event)" title="שמירה למסך הבית">
+        <i class="fas fa-plus-square"></i>
+        <span>שמור למסך הבית</span>
     </div>
     
     <div id="app"></div>
@@ -4588,45 +4588,64 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             });
         }
 
-        // App Install Handler - APK for Android, Home Screen for iOS
+        // Add to Home Screen Handler - works on both Android and iOS
         function handleAppInstall(event) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
 
-            const ua = navigator.userAgent || '';
-            const isIOS = /iPhone|iPad|iPod/.test(ua);
-
-            // iOS: show "Add to Home Screen" instructions
-            if (isIOS) {
-                showIOSInstallInstructions();
+            // Android/Chrome: use native install prompt if available
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(choice => {
+                    if (choice.outcome === 'accepted') {
+                        showModal('success', 'האפליקציה נוספה למסך הבית!');
+                    }
+                    deferredPrompt = null;
+                });
                 return;
             }
 
-            // Android/others: download APK
-            handleDownloadAPK();
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPhone|iPad|iPod/.test(ua);
+
+            if (isIOS) {
+                showIOSInstallInstructions();
+            } else {
+                showAndroidInstallInstructions();
+            }
         }
 
-        function handleDownloadAPK() {
-            const apkUrl = '/transport-system.apk';
-            fetch(apkUrl, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        const link = document.createElement('a');
-                        link.href = apkUrl;
-                        link.download = 'transport-system.apk';
-                        link.style.display = 'none';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    } else {
-                        showModal('error', 'קובץ ה-APK לא נמצא. נסה שוב מאוחר יותר.');
-                    }
-                })
-                .catch(() => {
-                    showModal('error', 'שגיאה בהורדת האפליקציה. נסה שוב מאוחר יותר.');
-                });
+        function showAndroidInstallInstructions() {
+            const instructions = `
+                <div style="text-align: right; direction: rtl; line-height: 1.8;">
+                    <h3 style="color: ${COLORS.primary}; margin-bottom: 20px; font-size: 20px;">
+                        <i class="fas fa-mobile-alt ml-2"></i>
+                        שמירה למסך הבית (Android)
+                    </h3>
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+                        <ol style="list-style: none; padding: 0; margin: 0;">
+                            <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+                                <span>לחץ על <strong>תפריט הדפדפן</strong> <i class="fas fa-ellipsis-vertical" style="color: ${COLORS.primary};"></i> (שלוש נקודות בפינה)</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+                                <span>בחר <strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 12px;">
+                                <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+                                <span>לחץ <strong>"התקן"</strong></span>
+                            </li>
+                        </ol>
+                        <p style="background: ${COLORS.accent}22; padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; border-right: 4px solid ${COLORS.accent};">
+                            <strong style="color: ${COLORS.primary};">שים לב:</strong> יש לפתוח את האתר דרך <strong>Chrome</strong> לחוויה הטובה ביותר.
+                        </p>
+                    </div>
+                </div>
+            `;
+            showModal('info', instructions);
         }
 
         function showIOSInstallInstructions() {
