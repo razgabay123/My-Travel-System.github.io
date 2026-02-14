@@ -1,10 +1,10 @@
 Keep this file and signing.keystore in a safe place. You'll need these files if you want to upload future versions of your PWA to the Google Play Store.
 
 Key store file: signing.keystore
-Key store password: VS5E0xS4TX2Z
+Key store password: L_fge8oqi5wg
 Key alias: my-key-alias
-Key password: VS5E0xS4TX2Z
-Signer's full name: transport system Admin
-Signer's organization: my transport system
+Key password: L_fge8oqi5wg
+Signer's full name: Travel System Admin
+Signer's organization: My Travel System
 Signer's organizational unit: Engineering
 Signer's country code: US
