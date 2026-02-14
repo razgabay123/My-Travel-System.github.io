@@ -260,7 +260,7 @@
                 // If we have localStorage data, use that silently
                 const hasLocalData = localStorage.getItem('employees');
                 if (!hasLocalData) {
-                    alert('שגיאה בטעינת נתוני עובדים. יש לוודא שהשרת פועל (npm start בתיקיית backend).');
+                    alert('שגיאה בטעינת נתוני עובדים/ות. יש לוודא שהשרת פועל (npm start בתיקיית backend).');
                 } else {
                     console.log('Using cached localStorage data (offline mode)');
                 }
@@ -380,7 +380,7 @@
             localStorage.setItem('removedWorkers', JSON.stringify(removedWorkers));
         }
 
-        // פונקציות לניהול סטטוס נסיעה יומי (daily transportation status from סידור עובדים)
+        // פונקציות לניהול סטטוס נסיעה יומי (daily transportation status from סידור עובדים/ות)
         function getDailyTransportationStatus() {
             const today = getTodayDateString();
             const stored = localStorage.getItem('dailyTransportationStatus');
@@ -963,7 +963,7 @@
                         }).filter(emp => emp.name && emp.address); // Filter out invalid rows
 
                         if (importedEmployees.length === 0) {
-                            showModal('error', 'לא נמצאו עובדים תקינים בקובץ. נא לוודא שהקובץ מכיל נתונים בעמודות: שם, כתובת, עיר, טלפון, מסלול, שעה');
+                            showModal('error', 'לא נמצאו עובדים/ות תקינים בקובץ. נא לוודא שהקובץ מכיל נתונים בעמודות: שם, כתובת, עיר, טלפון, מסלול, שעה');
                             return;
                         }
 
@@ -1003,10 +1003,10 @@
                         saveEmployees();
                         render();
                         const message = updatedCount > 0 && addedCount > 0 
-                            ? `עודכנו ${updatedCount} עובדים ו-נוספו ${addedCount} עובדים חדשים בהצלחה!`
+                            ? `עודכנו ${updatedCount} עובדים/ות ו-נוספו ${addedCount} עובדים/ות חדשים בהצלחה!`
                             : updatedCount > 0 
-                            ? `עודכנו ${updatedCount} עובדים בהצלחה!`
-                            : `נוספו ${addedCount} עובדים חדשים בהצלחה!`;
+                            ? `עודכנו ${updatedCount} עובדים/ות בהצלחה!`
+                            : `נוספו ${addedCount} עובדים/ות חדשים בהצלחה!`;
                         showModal('success', message);
                     } catch (error) {
                         console.error('Error importing Excel:', error);
@@ -1035,7 +1035,7 @@
                 }));
 
                 if (exportData.length === 0) {
-                    showModal('error', 'אין עובדים לייצא');
+                    showModal('error', 'אין עובדים/ות לייצא');
                     return;
                 }
 
@@ -1073,7 +1073,7 @@
                 
                 // Note: The browser's save dialog should appear automatically
                 // If it doesn't, check your browser's download settings
-                showModal('success', `רשימת העובדים מוכנה לייצוא. נא לבחור מיקום שמירה בחלון שמופיע.`);
+                showModal('success', `רשימת העובדים/ות מוכנה לייצוא. נא לבחור מיקום שמירה בחלון שמופיע.`);
             } catch (error) {
                 console.error('Error exporting Excel:', error);
                 showModal('error', 'שגיאה בייצוא הקובץ. נא לנסות שוב.');
@@ -1081,7 +1081,7 @@
         }
 
         function showImportFormatHelp() {
-            const helpText = `פורמט קובץ Excel/ODS לייבוא עובדים:
+            const helpText = `פורמט קובץ Excel/ODS לייבוא עובדים/ות:
 
 הקובץ צריך להיות בפורמט .xlsx, .xls או .ods
 
@@ -1129,7 +1129,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <i class="fas fa-users text-4xl mb-3 opacity-80"></i>
 
                             <p class="text-3xl font-bold">${getActiveEmployees().length}</p>
-                            <p class="text-sm opacity-90">עובדים פעילים</p>
+                            <p class="text-sm opacity-90">עובדים/ות פעילים</p>
                         </div>
                         
 
@@ -1350,7 +1350,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 <div class="space-y-4 lg:space-y-6">
                     <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                         <i class="fas fa-users-cog text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
-                        שליחת עובדים - נובולוג
+                        שליחת עובדים/ות - נובולוג
                     </h2>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
@@ -1391,7 +1391,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                                     <div class="p-5">
                                         <div class="mb-4 flex items-center justify-between">
-                                            <span class="text-gray-600">עובדים במסלול:</span>
+                                            <span class="text-gray-600">עובדים/ות במסלול:</span>
                                             <span class="px-3 py-1 rounded-full font-bold" style="background-color: ${COLORS.primary}; color: white;">${routeEmployees.length}</span>
                                         </div>
 
@@ -1426,7 +1426,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             `;
                                             }).join('') : `
                                                 <div class="text-center p-4 text-gray-500 text-sm">
-                                                    גרור עובדים לכאן
+                                                    גרור עובדים/ות לכאן
                                                 </div>
                                             `}
                                         </div>
@@ -1439,7 +1439,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <button onclick="sendToTransportManager()" class="w-full px-6 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                             <i class="fas fa-paper-plane ml-2"></i>
-                            שליחת עובדים לאחראי הסעות
+                            שליחת עובדים/ות לאחראי הסעות
                         </button>
                     </div>
 
@@ -1449,9 +1449,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div>
                                 <h4 class="font-bold text-lg mb-2" style="color: ${COLORS.textDark};">הערות חשובות:</h4>
                                 <ul class="space-y-1" style="color: ${COLORS.textDark};">
-                                    <li>• העובדים מסומנים אוטומטית כבאים (אלא אם הוסרו/בוטלו)</li>
+                                    <li>• העובדים/ות מסומנים אוטומטית כבאים (אלא אם הוסרו/בוטלו)</li>
                                     <li>• ניתן לשנות מסלול עובד במקרה חירום (נהג חולה וכו')</li>
-                                    <li>• יש ללחוץ על "שליחת עובדים לאחראי הסעות" לעדכן את המידע</li>
+                                    <li>• יש ללחוץ על "שליחת עובדים/ות לאחראי הסעות" לעדכן את המידע</li>
                                     <li>• המידע מתעדכן אוטומטית ב"אחראי הסעות"</li>
                                 </ul>
                             </div>
@@ -1619,7 +1619,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
                             <i class="fas fa-exclamation-triangle text-3xl mb-3" style="color: ${COLORS.accent};"></i>
                             <p class="text-lg font-bold" style="color: ${COLORS.textDark};">אין נתונים זמינים עדיין</p>
-                            <p class="text-sm mt-2" style="color: ${COLORS.textDark};">נא להמתין לעדכון מ"סידור עובדים"</p>
+                            <p class="text-sm mt-2" style="color: ${COLORS.textDark};">נא להמתין לעדכון מ"סידור עובדים/ות"</p>
                         </div>
                     ` : `
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1710,7 +1710,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                             <i class="fas fa-users text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
-                            רשימת עובדים
+                            רשימת עובדים/ות
                         </h2>
 
                         <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
@@ -1719,12 +1719,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </button>
                             <button onclick="importEmployeesFromExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.primary};">
                                 <i class="fas fa-file-excel ml-1 lg:ml-2"></i>
-                                <span class="hidden sm:inline">ייבוא עובדים</span>
+                                <span class="hidden sm:inline">ייבוא עובדים/ות</span>
                                 <span class="sm:hidden">ייבוא</span>
                             </button>
                             <button onclick="exportEmployeesToExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                 <i class="fas fa-download ml-1 lg:ml-2"></i>
-                                <span class="hidden sm:inline">ייצוא עובדים</span>
+                                <span class="hidden sm:inline">ייצוא עובדים/ות</span>
                                 <span class="sm:hidden">ייצוא</span>
                         </button>
 
@@ -1840,13 +1840,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
                             <i class="fas fa-user-cog text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
-                            ניהול עובדים
+                            ניהול עובדים/ות
                         </h2>
 
                         <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
                             <button onclick="addEmployeeModalState.show = true; render();" class="px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none text-white" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                 <i class="fas fa-plus ml-1 lg:ml-2"></i>
-                                <span class="hidden sm:inline">הוספת עובדים</span>
+                                <span class="hidden sm:inline">הוספת עובדים/ות</span>
                                 <span class="sm:hidden">הוספה</span>
                         </button>
 
@@ -1873,7 +1873,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     ${employees.length === 0 ? `
                                         <tr>
                                             <td colspan="8" class="px-3 lg:px-6 py-8 text-center text-gray-500">
-                                                אין עובדים במערכת
+                                                אין עובדים/ות במערכת
                                             </td>
                                         </tr>
                                     ` : employees.map(emp => `
@@ -2634,7 +2634,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     </div>
                                     <div class="flex justify-between items-center">
 
-                                                <span class="text-gray-600 text-sm lg:text-base">עובדים:</span>
+                                                <span class="text-gray-600 text-sm lg:text-base">עובדים/ות:</span>
                                                 <span class="font-bold text-sm lg:text-base">${employeeCount}</span>
                                     </div>
                                     <div class="flex justify-between items-center">
@@ -3747,10 +3747,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 { id: 'dashboard', label: 'דשבורד', icon: 'fa-home' },
 
                 { id: 'employee-portal', label: 'הבקשות שלי', icon: 'fa-user' },
-                { id: 'employees', label: 'רשימת עובדים', icon: 'fa-users' },
+                { id: 'employees', label: 'רשימת עובדים/ות', icon: 'fa-users' },
 
-                { id: 'employee-management', label: 'ניהול עובדים', icon: 'fa-user-cog' },
-                { id: 'employee-arrangement', label: 'סידור עובדים', icon: 'fa-users-cog' },
+                { id: 'employee-management', label: 'ניהול עובדים/ות', icon: 'fa-user-cog' },
+                { id: 'employee-arrangement', label: 'סידור עובדים/ות', icon: 'fa-users-cog' },
                 { id: 'transport-manager', label: 'אחראי הסעות', icon: 'fa-paper-plane' },
                 { id: 'driver-view', label: 'תצוגת נהג', icon: 'fa-car' },
                 { id: 'routes', label: 'ניהול מסלולים', icon: 'fa-route' },
