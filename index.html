@@ -260,7 +260,7 @@
                 // If we have localStorage data, use that silently
                 const hasLocalData = localStorage.getItem('employees');
                 if (!hasLocalData) {
-                    alert('שגיאה בטעינת נתוני עובדים. ודא שהשרת פועל (npm start בתיקיית backend).');
+                    alert('שגיאה בטעינת נתוני עובדים. יש לוודא שהשרת פועל (npm start בתיקיית backend).');
                 } else {
                     console.log('Using cached localStorage data (offline mode)');
                 }
@@ -623,7 +623,7 @@
 
         function handleSelfRemoval(workerId, workerName) {
             console.log('handleSelfRemoval called with:', workerId, workerName);
-            showModal('confirm', 'האם אתה בטוח שלא תבוא היום?', null, workerId, workerName);
+            showModal('confirm', 'האם ברצונך לבטל הגעה להיום?', null, workerId, workerName);
         }
 
         function handleEdit(employeeId) {
@@ -652,13 +652,13 @@
             const time = document.getElementById('editTime').value;
 
             if (!name || !address || !city) {
-                showModal('error', 'אנא מלא את כל השדות החובה');
+                showModal('error', 'נא למלא את כל שדות החובה');
                 return;
             }
 
             // Validate email format if provided
             if (email && !email.includes('@')) {
-                showModal('error', 'אנא הזן כתובת אימייל תקינה');
+                showModal('error', 'נא להזין כתובת אימייל תקינה');
                 return;
             }
 
@@ -668,7 +668,7 @@
             // Check for duplicate name (excluding current employee)
             const duplicateName = employees.find(e => e.id !== currentEmployeeId && e.name.toLowerCase() === name.toLowerCase());
             if (duplicateName) {
-                showModal('error', 'שם זה כבר קיים אצל עובד אחר. אנא בחר שם אחר.');
+                showModal('error', 'שם זה כבר קיים אצל עובד אחר. נא לבחור שם אחר.');
                 return;
             }
 
@@ -676,7 +676,7 @@
             if (phone) {
                 const duplicatePhone = employees.find(e => e.id !== currentEmployeeId && e.phone && e.phone === phone);
                 if (duplicatePhone) {
-                    showModal('error', 'מספר טלפון זה כבר קיים אצל עובד אחר. אנא בחר מספר אחר.');
+                    showModal('error', 'מספר טלפון זה כבר קיים אצל עובד אחר. נא לבחור מספר אחר.');
                     return;
                 }
             }
@@ -685,7 +685,7 @@
             if (email) {
                 const duplicateEmail = employees.find(e => e.id !== currentEmployeeId && e.email && e.email.toLowerCase() === email.toLowerCase());
                 if (duplicateEmail) {
-                    showModal('error', 'כתובת אימייל זו כבר קיימת אצל עובד אחר. אנא בחר כתובת אחרת.');
+                    showModal('error', 'כתובת אימייל זו כבר קיימת אצל עובד אחר. נא לבחור כתובת אחרת.');
                     return;
                 }
             }
@@ -721,7 +721,7 @@
                         showModal('success', 'העובד עודכן בהצלחה');
                     } else {
                         showModal('error', data.error === 'Username or worker code already exists' ?
-                            'שם משתמש או קוד עובד כבר קיים' : 'שגיאה בעדכון עובד. נסה שוב.');
+                            'שם משתמש או קוד עובד כבר קיים' : 'שגיאה בעדכון עובד. יש לנסות שוב.');
                     }
                 } catch (error) {
                     console.error('Update employee error:', error);
@@ -754,7 +754,7 @@
             const password = passwordInput.value.trim();
 
             if (!username || !password) {
-                alert('אנא מלא את כל השדות');
+                alert('נא למלא את כל השדות');
                 return;
             }
 
@@ -784,12 +784,12 @@
                 } else {
                     // Login failed
                     alert(data.error === 'Invalid credentials' ?
-                        'שם משתמש או סיסמה שגויים' :
-                        'שגיאה בהתחברות. נסה שוב.');
+                        'שם משתמש או סיסמה לא נכונים' :
+                        'שגיאה בהתחברות. יש לנסות שוב.');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                alert('שגיאה בהתחברות לשרת. ודא שהשרת פועל.');
+                alert('שגיאה בהתחברות לשרת. יש לוודא שהשרת פועל.');
             }
         }
 
@@ -963,7 +963,7 @@
                         }).filter(emp => emp.name && emp.address); // Filter out invalid rows
 
                         if (importedEmployees.length === 0) {
-                            showModal('error', 'לא נמצאו עובדים תקינים בקובץ. אנא ודא שהקובץ מכיל נתונים בעמודות: שם, כתובת, עיר, טלפון, מסלול, שעה');
+                            showModal('error', 'לא נמצאו עובדים תקינים בקובץ. נא לוודא שהקובץ מכיל נתונים בעמודות: שם, כתובת, עיר, טלפון, מסלול, שעה');
                             return;
                         }
 
@@ -1010,7 +1010,7 @@
                         showModal('success', message);
                     } catch (error) {
                         console.error('Error importing Excel:', error);
-                        showModal('error', 'שגיאה בקריאת הקובץ. אנא ודא שזה קובץ Excel או ODS תקין (.xlsx, .xls, .ods)');
+                        showModal('error', 'שגיאה בקריאת הקובץ. נא לוודא שזה קובץ Excel או ODS תקין (.xlsx, .xls, .ods)');
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -1073,10 +1073,10 @@
                 
                 // Note: The browser's save dialog should appear automatically
                 // If it doesn't, check your browser's download settings
-                showModal('success', `רשימת העובדים מוכנה לייצוא. בחר מיקום שמירה בחלון שמופיע.`);
+                showModal('success', `רשימת העובדים מוכנה לייצוא. נא לבחור מיקום שמירה בחלון שמופיע.`);
             } catch (error) {
                 console.error('Error exporting Excel:', error);
-                showModal('error', 'שגיאה בייצוא הקובץ. אנא נסה שוב.');
+                showModal('error', 'שגיאה בייצוא הקובץ. נא לנסות שוב.');
             }
         }
 
@@ -1259,7 +1259,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div>
                                 <h2 class="text-3xl font-bold mb-2">שלום ${driver.name}</h2>
 
-                                <p class="opacity-90">המסלול שלך להיום: ${driver.route}</p>
+                                <p class="opacity-90">המסלול להיום: ${driver.route}</p>
                             </div>
 
                             <i class="fas fa-car text-6xl" style="opacity: 1;"></i>
@@ -1317,19 +1317,19 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                         <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5" style="background-color: ${COLORS.success};">
                                             <i class="fas fa-check"></i>
                                         </span>
-                                        <span class="text-base">בדוק תנאי דרך לפני היציאה</span>
+                                        <span class="text-base">יש לבדוק תנאי דרך לפני היציאה</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5" style="background-color: ${COLORS.success};">
                                             <i class="fas fa-check"></i>
                                         </span>
-                                        <span class="text-base">התקשר לנוסעים אם יש עיכוב</span>
+                                        <span class="text-base">יש להתקשר לנוסעים אם יש עיכוב</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5" style="background-color: ${COLORS.success};">
                                             <i class="fas fa-check"></i>
                                         </span>
-                                        <span class="text-base">וודא שכל הנוסעים עלו לרכב</span>
+                                        <span class="text-base">יש לוודא שכל הנוסעים עלו לרכב</span>
                                     </li>
                                 </ul>
                             </div>
@@ -1451,7 +1451,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <ul class="space-y-1" style="color: ${COLORS.textDark};">
                                     <li>• העובדים מסומנים אוטומטית כבאים (אלא אם הוסרו/בוטלו)</li>
                                     <li>• ניתן לשנות מסלול עובד במקרה חירום (נהג חולה וכו')</li>
-                                    <li>• לחץ על "שליחת עובדים לאחראי הסעות" לעדכן את המידע</li>
+                                    <li>• יש ללחוץ על "שליחת עובדים לאחראי הסעות" לעדכן את המידע</li>
                                     <li>• המידע מתעדכן אוטומטית ב"אחראי הסעות"</li>
                                 </ul>
                             </div>
@@ -1619,7 +1619,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
                             <i class="fas fa-exclamation-triangle text-3xl mb-3" style="color: ${COLORS.accent};"></i>
                             <p class="text-lg font-bold" style="color: ${COLORS.textDark};">אין נתונים זמינים עדיין</p>
-                            <p class="text-sm mt-2" style="color: ${COLORS.textDark};">אנא המתן לעדכון מ"סידור עובדים"</p>
+                            <p class="text-sm mt-2" style="color: ${COLORS.textDark};">נא להמתין לעדכון מ"סידור עובדים"</p>
                         </div>
                     ` : `
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1692,7 +1692,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                                 <h4 class="font-bold text-base lg:text-lg mb-1 lg:mb-2" style="color: ${COLORS.textDark};">הערות חשובות:</h4>
                                 <ul class="space-y-1 text-sm lg:text-base" style="color: ${COLORS.textDark};">
-                                    <li>• כל נהג מקבל רק את המסלול שלו</li>
+                                    <li>• כל נהג/ת מקבל/ת רק את המסלול המשויך</li>
                                     <li>• הסידור כולל שמות, כתובות ומספרי טלפון</li>
                                     <li>• הנהגים מקבלים עדכונים</li>
                                 </ul>
@@ -1824,7 +1824,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="lg:hidden px-3 py-2 bg-gray-50 border-t border-gray-200 text-center">
                             <p class="text-xs text-gray-500">
                                 <i class="fas fa-arrows-alt-h ml-1"></i>
-                                גלול ימינה ושמאלה כדי לראות את כל המידע
+                                ניתן לגלול ימינה ושמאלה כדי לראות את כל המידע
                             </p>
                         </div>
                     </div>
@@ -1909,7 +1909,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const employee = employees.find(e => e.id === employeeId);
             if (!employee) return;
 
-            showModal('confirm-delete-employee', `האם אתה בטוח שברצונך למחוק את העובד "${employee.name}" לצמיתות? פעולה זו לא ניתנת לביטול.`, async () => {
+            showModal('confirm-delete-employee', `האם ברצונך שברצונך למחוק את העובד "${employee.name}" לצמיתות? פעולה זו לא ניתנת לביטול.`, async () => {
                 const index = employees.findIndex(e => e.id === employeeId);
                 if (index !== -1) {
                     // Check if the deleted employee is the currently logged-in user
@@ -1966,27 +1966,27 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const password = document.getElementById('newEmployeePassword').value.trim();
             
             if (!name || !address || !city || !username || !password) {
-                showModal('error', 'אנא מלא את כל השדות החובה');
+                showModal('error', 'נא למלא את כל שדות החובה');
                 return;
             }
             
             // Validate email format if provided
             if (email && !email.includes('@')) {
-                showModal('error', 'אנא הזן כתובת אימייל תקינה');
+                showModal('error', 'נא להזין כתובת אימייל תקינה');
                 return;
             }
             
             // Check for duplicate name
             const duplicateName = employees.find(e => e.name.toLowerCase() === name.toLowerCase());
             if (duplicateName) {
-                showModal('error', 'שם זה כבר קיים אצל עובד אחר. אנא בחר שם אחר.');
+                showModal('error', 'שם זה כבר קיים אצל עובד אחר. נא לבחור שם אחר.');
                 return;
             }
             
             // Check for duplicate username
             const duplicateUsername = employees.find(e => e.username && e.username.toLowerCase() === username.toLowerCase());
             if (duplicateUsername) {
-                showModal('error', 'קוד משתמש זה כבר קיים. אנא בחר קוד אחר.');
+                showModal('error', 'קוד משתמש זה כבר קיים. נא לבחור קוד אחר.');
                 return;
             }
             
@@ -1994,7 +1994,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             if (phone) {
                 const duplicatePhone = employees.find(e => e.phone && e.phone === phone);
                 if (duplicatePhone) {
-                    showModal('error', 'מספר טלפון זה כבר קיים אצל עובד אחר. אנא בחר מספר אחר.');
+                    showModal('error', 'מספר טלפון זה כבר קיים אצל עובד אחר. נא לבחור מספר אחר.');
                     return;
                 }
             }
@@ -2003,7 +2003,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             if (email) {
                 const duplicateEmail = employees.find(e => e.email && e.email.toLowerCase() === email.toLowerCase());
                 if (duplicateEmail) {
-                    showModal('error', 'כתובת אימייל זו כבר קיימת אצל עובד אחר. אנא בחר כתובת אחרת.');
+                    showModal('error', 'כתובת אימייל זו כבר קיימת אצל עובד אחר. נא לבחור כתובת אחרת.');
                     return;
                 }
             }
@@ -2043,11 +2043,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     showModal('success', 'העובד נוסף בהצלחה למסד הנתונים!');
                 } else {
                     showModal('error', data.error === 'Username or worker code already exists' ?
-                        'שם משתמש זה כבר קיים' : 'שגיאה בהוספת עובד. נסה שוב.');
+                        'שם משתמש זה כבר קיים' : 'שגיאה בהוספת עובד. יש לנסות שוב.');
                 }
             } catch (error) {
                 console.error('Add employee error:', error);
-                showModal('error', 'שגיאה בחיבור לשרת. ודא שהשרת פועל.');
+                showModal('error', 'שגיאה בחיבור לשרת. יש לוודא שהשרת פועל.');
             }
         }
 
@@ -2107,7 +2107,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             modalState = {
                 show: true,
                 type: 'confirm-delete-route',
-                message: `האם אתה בטוח שברצונך למחוק את ${routeName}?`,
+                message: `האם ברצונך שברצונך למחוק את ${routeName}?`,
                 routeName: routeName,
                 onConfirm: function() {
                     const routes = getRoutes();
@@ -2419,7 +2419,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const address = addressInput?.value.trim() || '';
 
             if (!city || !address) {
-                alert('אנא הזן עיר וכתובת');
+                alert('נא להזין עיר וכתובת');
                 return;
             }
 
@@ -2543,11 +2543,11 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function saveNewRoute() {
             if (!routeModalState.routeName) {
-                alert('אנא הזן שם מסלול');
+                alert('נא להזין שם מסלול');
                 return;
             }
             if (routeModalState.selectedLocations.length === 0) {
-                alert('אנא בחר לפחות מיקום אחד');
+                alert('נא לבחור לפחות מיקום אחד');
                 return;
             }
 
@@ -2601,7 +2601,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="bg-white rounded-xl shadow-lg p-8 text-center">
                             <i class="fas fa-route text-4xl mb-4" style="color: ${COLORS.primary};"></i>
                             <p class="text-lg font-bold text-gray-600 mb-2">אין מסלולים זמינים</p>
-                            <p class="text-sm text-gray-500">לחץ על "הוסף מסלול" כדי להתחיל</p>
+                            <p class="text-sm text-gray-500">יש ללחוץ על "הוסף מסלול" כדי להתחיל</p>
                         </div>
 
                     ` : `
@@ -2694,12 +2694,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function cancelSelectedRides() {
             if (selectedCancellationDates.size === 0) {
-                alert('אנא בחר לפחות תאריך אחד');
+                alert('נא לבחור לפחות תאריך אחד');
                 return;
             }
             
             if (!loggedInUserId) {
-                alert('אנא התחבר תחילה');
+                alert('נא להתחבר תחילה');
                 return;
             }
             
@@ -2716,7 +2716,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         function EmployeePortalView() {
 
             if (!loggedInUserId) {
-                return '<div class="text-center p-4 lg:p-6 text-sm lg:text-base">אנא התחבר כדי לצפות בבקשות שלך</div>';
+                return '<div class="text-center p-4 lg:p-6 text-sm lg:text-base">נא להתחבר כדי לצפות בבקשות</div>';
             }
             
             const yearDates = generateYearDates();
@@ -2781,7 +2781,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h3 class="text-xl font-bold mb-4 text-gray-800">ביטול הסעה</h3>
 
-                            <p class="text-gray-600 mb-4 text-sm">בחר תאריכים שברצונך לבטל (ניתן לבחור מספר תאריכים):</p>
+                            <p class="text-gray-600 mb-4 text-sm">יש לבחור תאריכים לביטול (ניתן לבחור מספר תאריכים):</p>
                             
                             <div class="max-h-96 overflow-y-auto border-2 border-gray-200 rounded-lg p-2 lg:p-4 mb-4" style="max-height: 400px;">
                                 ${Object.keys(datesByMonth).sort().map(month => {
@@ -3130,7 +3130,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 // Open in new window and trigger print
                 const printWindow = window.open('', '_blank');
                 if (!printWindow) {
-                    showModal('error', 'החלון נחסם. אנא אפשר חלונות קופצים (pop-ups) עבור אתר זה.');
+                    showModal('error', 'החלון נחסם. נא לאפשר חלונות קופצים (pop-ups) עבור אתר זה.');
                     return;
                 }
                 printWindow.document.write(html);
@@ -3143,10 +3143,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     }, 500);
                 };
 
-                showModal('success', 'הדוח נפתח בחלון חדש. בחר "שמור כ-PDF" בתפריט ההדפסה.');
+                showModal('success', 'הדוח נפתח בחלון חדש. נא לבחור "שמור כ-PDF" בתפריט ההדפסה.');
             } catch (error) {
                 console.error('Error exporting PDF report:', error);
-                showModal('error', 'שגיאה בייצוא הדוח. אנא נסה שוב.');
+                showModal('error', 'שגיאה בייצוא הדוח. נא לנסות שוב.');
             }
         }
 
@@ -3186,7 +3186,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                     <!-- Date Selection -->
                     <div class="bg-white rounded-xl shadow-lg p-6 text-center sm:text-right">
-                        <h3 class="text-lg font-bold mb-4 text-gray-800">בחר חודש לדוח</h3>
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">בחירת חודש לדוח</h3>
                         <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
                             <div class="flex-1">
                                 <label class="block text-gray-700 font-medium mb-2">חודש</label>
@@ -3303,13 +3303,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <div>
 
                                     <label class="block text-white font-medium mb-2">קוד משתמש (מספר עובד או שם)</label>
-                                    <input type="text" id="usernameInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הכנס מספר עובד (1-7) או שם">
+                                    <input type="text" id="usernameInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="מספר עובד/ת (1-7) או שם">
                                 </div>
                                 <div>
                                     <label class="block text-white font-medium mb-2">סיסמה</label>
 
                                     <div class="relative">
-                                        <input type="password" id="passwordInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הכנס סיסמה (ברירת מחדל: 1234)">
+                                        <input type="password" id="passwordInput" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="סיסמה (ברירת מחדל: 1234)">
                                         <button type="button" onclick="togglePasswordVisibility()" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none z-10">
                                             <i id="passwordToggleIcon" class="fas fa-eye-slash"></i>
                                         </button>
@@ -3673,7 +3673,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                         <i class="fas fa-map ml-2" style="color: ${COLORS.primary};"></i>
                                         מפה אינטראקטיבית
                                     </label>
-                                    <p class="text-xs lg:text-sm text-gray-600 mb-2">לחץ על המפה כדי להוסיף מיקום</p>
+                                    <p class="text-xs lg:text-sm text-gray-600 mb-2">יש ללחוץ על המפה כדי להוסיף מיקום</p>
                                     <div id="route-map-container" class="w-full h-64 lg:h-96 rounded-lg border-2 border-gray-300 mb-4" style="border-color: ${COLORS.primary};"></div>
                                 </div>
 
@@ -3838,7 +3838,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div>
 
                                 <h1 class="text-base lg:text-xl font-bold">מערכת הסעות</h1>
-                                <p class="text-xs opacity-90">מנהל מערכת</p>
+                                <p class="text-xs opacity-90">ניהול מערכת</p>
                             </div>
                         </div>
                     </div>
@@ -3907,13 +3907,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const confirmPassword = document.getElementById('registerConfirmPassword')?.value.trim();
 
             if (!name || !phone || !address || !city || !route || !username || !password || !confirmPassword) {
-                alert('אנא מלא את כל השדות הנדרשים');
+                alert('נא למלא את כל השדות הנדרשים');
                 return;
             }
 
             // Validate email format if provided
             if (email && !email.includes('@')) {
-                alert('אנא הזן כתובת אימייל תקינה');
+                alert('נא להזין כתובת אימייל תקינה');
                 return;
             }
 
@@ -3954,15 +3954,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         route, time, department, username, active: true
                     });
 
-                    alert('ההרשמה בוצעה בהצלחה! כעת תוכל להתחבר');
+                    alert('ההרשמה בוצעה בהצלחה! כעת ניתן להתחבר');
                     closeRegisterModal();
                 } else {
                     alert(data.error === 'Username or worker code already exists' ?
-                        'שם משתמש זה כבר קיים' : 'שגיאה בהרשמה. נסה שוב.');
+                        'שם משתמש זה כבר קיים' : 'שגיאה בהרשמה. יש לנסות שוב.');
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                alert('שגיאה בחיבור לשרת. ודא שהשרת פועל.');
+                alert('שגיאה בחיבור לשרת. יש לוודא שהשרת פועל.');
             }
         }
 
@@ -3986,7 +3986,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const emailInput = document.getElementById('forgotEmailCode')?.value.trim();
 
             if (!memberCode && !emailInput) {
-                alert('אנא הזן שם משתמש או כתובת אימייל');
+                alert('נא להזין שם משתמש או כתובת אימייל');
                 return;
             }
 
@@ -4048,17 +4048,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         localStorage.setItem('passwordResetTokens', JSON.stringify(resetTokens));
 
                         sendEmail(emailToSend, employee.name, tokenWithEmail, employee).then(() => {
-                            alert(`הודעת אימייל נשלחה ל-${employee.email}. אנא בדוק את תיבת הדואר שלך.`);
+                            alert(`הודעת אימייל נשלחה ל-${employee.email}. נא לבדוק את תיבת הדואר.`);
                             forgotPasswordModalState.show = false;
                             render();
                         }).catch((error) => {
                             console.error('Email sending failed:', error);
-                            alert(`שגיאה בשליחת אימייל: ${error.message || 'Unknown error'}. אנא נסה שוב או השתמש בקוד חבר.`);
+                            alert(`שגיאה בשליחת אימייל: ${error.message || 'Unknown error'}. נא לנסות שוב או להשתמש בקוד חבר.`);
                         });
                     } else if (!employee.email || !employee.email.trim()) {
-                        alert(`העובד ${employee.name} נמצא, אבל אין לו כתובת אימייל במערכת. אנא השתמש בקוד חבר או הוסף אימייל לעובד.`);
+                        alert(`${employee.name} נמצא/ה במערכת, אבל אין כתובת אימייל. נא להשתמש בקוד חבר או להוסיף אימייל לעובד/ת.`);
                     } else if (!EMAIL_CONFIG.enabled) {
-                        alert('שירות האימייל לא מופעל. אנא השתמש בקוד חבר.');
+                        alert('שירות האימייל לא מופעל. נא להשתמש בקוד חבר.');
                     }
                 } else {
                     // Member code was used, go directly to reset
@@ -4067,7 +4067,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     render();
                 }
             } else {
-                alert('לא נמצא עובד. אנא בדוק את הפרטים ונסה שוב.');
+                alert('לא נמצא עובד. נא לבדוק את הפרטים ולנסות שוב.');
             }
         }
 
@@ -4104,7 +4104,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 user_name: userName || '',
                 from_name: 'מערכת הסעות', // Optional: sender name
                 reset_link: verificationLink,
-                message: `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול לחץ כאן: ${verificationLink}`,
+                message: `התקבלה פעולת שחזור חשבון לחשבונכם, לאישור איתחול יש ללחוץ כאן: ${verificationLink}`,
                 // Add worker-specific information
                 worker_id: employee?.id || '',
                 worker_phone: employee?.phone || '',
@@ -4148,7 +4148,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const confirmNewPassword = document.getElementById('confirmNewPassword')?.value.trim();
 
             if (!newPassword || !confirmNewPassword) {
-                alert('אנא מלא את כל השדות');
+                alert('נא למלא את כל השדות');
                 return;
             }
 
@@ -4174,14 +4174,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     const data = await response.json();
 
                     if (response.ok && data.success) {
-                        alert('הסיסמה עודכנה בהצלחה במסד הנתונים! כעת תוכל להתחבר עם הסיסמה החדשה');
+                        alert('הסיסמה עודכנה בהצלחה במסד הנתונים! כעת ניתן להתחבר עם הסיסמה החדשה');
                         closeForgotPasswordModal();
                     } else {
-                        alert('שגיאה בעדכון הסיסמה. נסה שוב.');
+                        alert('שגיאה בעדכון הסיסמה. יש לנסות שוב.');
                     }
                 } catch (error) {
                     console.error('Password reset error:', error);
-                    alert('שגיאה בחיבור לשרת. ודא שהשרת פועל.');
+                    alert('שגיאה בחיבור לשרת. יש לוודא שהשרת פועל.');
                 }
             }
         }
@@ -4290,7 +4290,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <div class="text-center mb-6">
                                     <i class="fas fa-key text-5xl mb-4" style="color: ${COLORS.primary};"></i>
                                     <h3 class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">שחזור סיסמה</h3>
-                                    <p class="text-gray-600 text-sm">הזן קוד חבר, אימייל או מספר טלפון לאימות</p>
+                                    <p class="text-gray-600 text-sm">נא להזין קוד חבר, אימייל או מספר טלפון לאימות</p>
                                 </div>
                                 
                                 <form onsubmit="event.preventDefault(); verifyForgotPassword();" class="space-y-4">
@@ -4304,7 +4304,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <div>
                                         <label class="block text-gray-700 font-medium mb-2">כתובת אימייל</label>
                                         <input type="text" id="forgotEmailCode" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="לדוגמה: user@email.com">
-                                        <p class="text-xs text-gray-500 mt-1">קישור לאיפוס סיסמה יישלח לאימייל שלך</p>
+                                        <p class="text-xs text-gray-500 mt-1">קישור לאיפוס סיסמה יישלח לאימייל</p>
                                     </div>
                                     
                                     <div class="flex gap-3 pt-4">
@@ -4381,7 +4381,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <div class="p-8 text-center text-gray-500">
                                     <i class="fas fa-bell-slash text-4xl mb-4 opacity-50"></i>
                                     <p>אין התראות עדיין</p>
-                                    <p class="text-sm mt-2">לחץ על "התראה חדשה" כדי להוסיף התראה</p>
+                                    <p class="text-sm mt-2">יש ללחוץ על "התראה חדשה" כדי להוסיף התראה</p>
                                 </div>
                             ` : alerts.map(alert => {
                                 const alertDate = new Date(alert.date);
@@ -4429,7 +4429,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const alertText = document.getElementById('alertBody')?.value.trim();
             
             if (!alertText) {
-                alert('אנא הזן גוף התראה');
+                alert('נא להזין גוף התראה');
                 return;
             }
             
@@ -4456,7 +4456,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-gray-700 font-medium mb-2">גוף ההתראה</label>
-                                    <textarea id="alertBody" rows="4" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הזן את תוכן ההתראה כאן..."></textarea>
+                                    <textarea id="alertBody" rows="4" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="תוכן ההתראה..."></textarea>
                                 </div>
                                 
                                 <div class="flex gap-3 pt-4">
@@ -4547,7 +4547,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     
                                     <div>
                                         <label class="block text-gray-700 font-medium mb-2">סיסמה *</label>
-                                        <input type="password" id="newEmployeePassword" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="הזן סיסמה" required>
+                                        <input type="password" id="newEmployeePassword" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" placeholder="סיסמה" required>
                                     </div>
                                 </div>
                                 
@@ -4628,15 +4628,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <ol style="list-style: none; padding: 0; margin: 0;">
                             <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
-                                <span>לחץ על <strong>תפריט הדפדפן</strong> <i class="fas fa-ellipsis-vertical" style="color: ${COLORS.primary};"></i> (שלוש נקודות בפינה)</span>
+                                <span>יש ללחוץ על <strong>תפריט הדפדפן</strong> <i class="fas fa-ellipsis-vertical" style="color: ${COLORS.primary};"></i> (שלוש נקודות בפינה)</span>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
-                                <span>בחר <strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
+                                <span>יש לבחור <strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 12px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
-                                <span>לחץ <strong>"התקן"</strong></span>
+                                <span>יש ללחוץ <strong>"התקן"</strong></span>
                             </li>
                         </ol>
                         <p style="background: ${COLORS.accent}22; padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; border-right: 4px solid ${COLORS.accent};">
@@ -4659,15 +4659,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         <ol style="list-style: none; padding: 0; margin: 0;">
                             <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
-                                <span>לחץ על כפתור <strong>השיתוף</strong> <i class="fas fa-share-square" style="color: ${COLORS.primary};"></i> בתחתית המסך (Safari)</span>
+                                <span>יש ללחוץ על כפתור <strong>השיתוף</strong> <i class="fas fa-share-square" style="color: ${COLORS.primary};"></i> בתחתית המסך (Safari)</span>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
-                                <span>גלול למטה ובחר <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
+                                <span>יש לגלול למטה ולבחור <strong>"הוסף למסך הבית"</strong> <i class="fas fa-plus-square" style="color: ${COLORS.primary};"></i></span>
                             </li>
                             <li style="display: flex; align-items: flex-start; gap: 12px;">
                                 <span style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: ${COLORS.primary}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
-                                <span>לחץ <strong>"הוסף"</strong> בפינה הימנית העליונה</span>
+                                <span>יש ללחוץ <strong>"הוסף"</strong> בפינה הימנית העליונה</span>
                             </li>
                         </ol>
                         <p style="background: ${COLORS.accent}22; padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; border-right: 4px solid ${COLORS.accent};">
