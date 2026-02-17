@@ -276,6 +276,32 @@
             if (storedDrivers) drivers = JSON.parse(storedDrivers);
         }
 
+        // Hash a password locally using SHA-256 (for offline login fallback)
+        async function hashPasswordLocally(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Save credentials locally after successful backend login
+        async function cacheCredentials(username, password, employee) {
+            const hash = await hashPasswordLocally(password);
+            const cached = JSON.parse(localStorage.getItem('cachedCredentials') || '{}');
+            cached[username.toLowerCase()] = { hash, employee };
+            localStorage.setItem('cachedCredentials', JSON.stringify(cached));
+        }
+
+        // Try to login using locally cached credentials
+        async function tryOfflineLogin(username, password) {
+            const cached = JSON.parse(localStorage.getItem('cachedCredentials') || '{}');
+            const entry = cached[username.toLowerCase()];
+            if (!entry) return null;
+            const hash = await hashPasswordLocally(password);
+            if (hash === entry.hash) return entry.employee;
+            return null;
+        }
+
         let currentSection = 'login';
 
         let sidebarOpen = window.innerWidth >= 1024; // Open on desktop, closed on mobile
@@ -771,7 +797,8 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Login successful
+                    // Login successful - cache credentials for offline use
+                    await cacheCredentials(username, password, data.employee);
                     loggedInUserId = data.employee.id;
 
                     // Update local employees array with logged in employee data
@@ -788,8 +815,19 @@
                         'שגיאה בהתחברות. יש לנסות שוב.');
                 }
             } catch (error) {
-                console.error('Login error:', error);
-                alert('שגיאה בהתחברות לשרת. יש לוודא שהשרת פועל.');
+                // Backend unreachable - try offline login with cached credentials
+                console.warn('Backend unreachable, attempting offline login...');
+                const offlineEmployee = await tryOfflineLogin(username, password);
+                if (offlineEmployee) {
+                    loggedInUserId = offlineEmployee.id;
+                    const empIndex = employees.findIndex(e => e.id === offlineEmployee.id);
+                    if (empIndex >= 0) {
+                        employees[empIndex] = { ...employees[empIndex], ...offlineEmployee };
+                    }
+                    showSection('dashboard');
+                } else {
+                    alert('לא ניתן להתחבר לשרת. אם התחברת בעבר מהמכשיר הזה, בדוק שם משתמש וסיסמה ונסה שוב.');
+                }
             }
         }
 
@@ -4685,14 +4723,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // Try to load from localStorage first (for offline support)
             loadFromLocalStorage();
 
-            // Then load fresh data from JSON
-            await loadWorkersData();
-
-            // Save to localStorage for offline access
-            saveEmployees();
-
-            // Now render the app
+            // Render immediately so login screen appears while backend wakes up
             render();
+
+            // Then load fresh data from backend (may be slow on free Render tier)
+            const loaded = await loadWorkersData();
+
+            // Save to localStorage for offline access and re-render with fresh data
+            if (loaded) {
+                saveEmployees();
+                render();
+            }
         }
 
         // Re-sync with backend when coming back online
