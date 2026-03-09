@@ -689,6 +689,7 @@
             const email = document.getElementById('editEmail')?.value.trim() || '';
             const route = document.getElementById('editRoute').value;
             const time = document.getElementById('editTime').value;
+            const newUsername = document.getElementById('editUsername')?.value.trim() || '';
 
             if (!name || !address || !city) {
                 showModal('error', 'נא למלא את כל שדות החובה');
@@ -729,12 +730,21 @@
                 }
             }
 
+            // Check for duplicate username
+            if (newUsername) {
+                const duplicateUsername = employees.find(e => e.id !== currentEmployeeId && e.username && e.username.toLowerCase() === newUsername.toLowerCase());
+                if (duplicateUsername) {
+                    showModal('error', 'קוד משתמש זה כבר קיים אצל עובד אחר. נא לבחור קוד אחר.');
+                    return;
+                }
+            }
+
             const index = employees.findIndex(e => e.id === currentEmployeeId);
 
             if (index !== -1) {
                 const updatedData = {
                     name, address, city, phone, email, route, time,
-                    username: employees[index].username,
+                    username: newUsername || employees[index].username,
                     workerCode: employees[index].workerCode || null,
                     company: department || null,
                     department: department || null,
@@ -1787,22 +1797,6 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             רשימת עובדים/ות
                         </h2>
 
-                        <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
-                            <button onclick="showImportFormatHelp()" class="p-2 rounded-lg transition hover:opacity-80" style="color: ${COLORS.primary}; background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1);" title="פורמט קובץ Excel">
-                                <i class="fas fa-question-circle text-lg lg:text-xl"></i>
-                        </button>
-                            <button onclick="importEmployeesFromExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.primary};">
-                                <i class="fas fa-file-excel ml-1 lg:ml-2"></i>
-                                <span class="hidden sm:inline">ייבוא עובדים/ות</span>
-                                <span class="sm:hidden">ייבוא</span>
-                            </button>
-                            <button onclick="exportEmployeesToExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
-                                <i class="fas fa-download ml-1 lg:ml-2"></i>
-                                <span class="hidden sm:inline">ייצוא עובדים/ות</span>
-                                <span class="sm:hidden">ייצוא</span>
-                        </button>
-
-                        </div>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -1918,12 +1912,24 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </h2>
 
                         <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
+                            <button onclick="showImportFormatHelp()" class="p-2 rounded-lg transition hover:opacity-80" style="color: ${COLORS.primary}; background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.1);" title="פורמט קובץ Excel">
+                                <i class="fas fa-question-circle text-lg lg:text-xl"></i>
+                            </button>
+                            <button onclick="importEmployeesFromExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.primary};">
+                                <i class="fas fa-file-excel ml-1 lg:ml-2"></i>
+                                <span class="hidden sm:inline">ייבוא עובדים/ות</span>
+                                <span class="sm:hidden">ייבוא</span>
+                            </button>
+                            <button onclick="exportEmployeesToExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
+                                <i class="fas fa-download ml-1 lg:ml-2"></i>
+                                <span class="hidden sm:inline">ייצוא עובדים/ות</span>
+                                <span class="sm:hidden">ייצוא</span>
+                            </button>
                             <button onclick="addEmployeeModalState.show = true; render();" class="px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none text-white" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
                                 <i class="fas fa-plus ml-1 lg:ml-2"></i>
                                 <span class="hidden sm:inline">הוספת עובדים/ות</span>
                                 <span class="sm:hidden">הוספה</span>
-                        </button>
-
+                            </button>
                         </div>
                     </div>
 
@@ -2822,12 +2828,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <div class="bg-white rounded-xl shadow-lg p-6">
 
-                            <h3 class="text-xl font-bold mb-4 text-gray-800">בקשות</h3>
+                            <h3 class="text-xl font-bold mb-4 text-gray-800">בקשות שלי</h3>
                             <div class="space-y-3">
 
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                    <span class="text-gray-600">קוד עובד/ת:</span>
-                                    <span class="font-bold">${employees.find(e => e.id === workerId)?.workerCode || employees.find(e => e.id === workerId)?.id || 'לא נמצא'}</span>
+                                    <span class="text-gray-600">שם עובד/ת:</span>
+                                    <span class="font-bold">${employees.find(e => e.id === workerId)?.name || 'לא נמצא'}</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-600">מסלול:</span>
@@ -3493,8 +3499,13 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             <label class="block text-gray-700 font-medium mb-2">שעת איסוף</label>
                                             <input type="time" id="editTime" value="${emp.time || '07:00'}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" required>
                                         </div>
+
+                                        <div>
+                                            <label class="block text-gray-700 font-medium mb-2">קוד משתמש</label>
+                                            <input type="text" id="editUsername" value="${emp.username || ''}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" style="border-color: #d1d5db; focus:border-color: ${COLORS.primary};" required>
+                                        </div>
                                     </div>
-                                    
+
                                     <div class="flex gap-3 justify-center mt-6">
                                         <button type="button" onclick="hideModal()" class="px-8 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.bgLight}; color: ${COLORS.textDark};">
                                             ביטול
