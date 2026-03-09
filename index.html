@@ -243,17 +243,25 @@
         let employees = [];
         let drivers = [];
 
+        // Fetch with automatic abort after `ms` milliseconds
+        function fetchWithTimeout(url, options, ms) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            return fetch(url, { ...options, signal: controller.signal })
+                .finally(() => clearTimeout(timer));
+        }
+
         // Load workers data from backend API
         async function loadWorkersData() {
             try {
                 // Fetch employees
-                const empResponse = await fetch(`${API_CONFIG.baseUrl}/employees`);
+                const empResponse = await fetchWithTimeout(`${API_CONFIG.baseUrl}/employees`, {}, 8000);
                 if (!empResponse.ok) throw new Error('Failed to fetch employees');
                 const empData = await empResponse.json();
                 employees = empData.employees || [];
 
                 // Fetch drivers
-                const driverResponse = await fetch(`${API_CONFIG.baseUrl}/drivers`);
+                const driverResponse = await fetchWithTimeout(`${API_CONFIG.baseUrl}/drivers`, {}, 8000);
                 if (!driverResponse.ok) throw new Error('Failed to fetch drivers');
                 const driverData = await driverResponse.json();
                 drivers = driverData.drivers || [];
@@ -807,14 +815,14 @@
             const minWait = new Promise(resolve => setTimeout(resolve, 3000));
 
             try {
-                // Call backend login API
-                const response = await fetch(`${API_CONFIG.baseUrl}/auth/login`, {
+                // Call backend login API (15s timeout so offline mobile doesn't hang)
+                const response = await fetchWithTimeout(`${API_CONFIG.baseUrl}/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ username, password })
-                });
+                }, 15000);
 
                 const data = await response.json();
 
