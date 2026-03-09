@@ -2772,6 +2772,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function toggleDateSelection(date) {
             const scrollY = window.scrollY;
+            const calEl = document.getElementById('calendarScrollContainer');
+            const calScrollTop = calEl ? calEl.scrollTop : 0;
 
             if (cancellationRangeStart === null) {
                 // First click — start or toggle
@@ -2805,7 +2807,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             }
 
             render();
-            window.scrollTo(0, scrollY);
+            requestAnimationFrame(() => {
+                window.scrollTo(0, scrollY);
+                const newCalEl = document.getElementById('calendarScrollContainer');
+                if (newCalEl) newCalEl.scrollTop = calScrollTop;
+            });
+        }
+
+        function clearDateSelection() {
+            selectedCancellationDates.clear();
+            cancellationRangeStart = null;
+            render();
         }
 
         function cancelSelectedRides() {
@@ -2904,7 +2916,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                             <p class="text-gray-600 mb-4 text-sm">יש לבחור תאריכים לביטול (ניתן לבחור מספר תאריכים):</p>
                             
-                            <div class="max-h-96 overflow-y-auto border-2 border-gray-200 rounded-lg p-2 lg:p-4 mb-4" style="max-height: 400px;">
+                            <div id="calendarScrollContainer" class="max-h-96 overflow-y-auto border-2 border-gray-200 rounded-lg p-2 lg:p-4 mb-4" style="max-height: 400px;">
                                 ${Object.keys(datesByMonth).sort().map(month => {
                                     const monthNum = parseInt(month.substring(5, 7));
                                     const monthName = monthNames[monthNum - 1];
@@ -2940,8 +2952,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
 
                             ${selectedCancellationDates.size > 0 ? `
-                                <div class="mb-4 p-3 rounded-lg border-2" style="background-color: ${COLORS.error}33; border-color: ${COLORS.error}66;">
+                                <div class="mb-4 p-3 rounded-lg border-2 flex items-center justify-between" style="background-color: ${COLORS.error}33; border-color: ${COLORS.error}66;">
                                     <p class="text-sm font-bold" style="color: ${COLORS.error}dd;">נבחרו ${selectedCancellationDates.size} תאריכים</p>
+                                    <button onclick="clearDateSelection()" class="text-xs font-bold px-3 py-1 rounded-lg transition hover:opacity-80" style="background-color: ${COLORS.error}; color: #fff;">נקה בחירה</button>
                                 </div>
                             ` : ''}
                             
