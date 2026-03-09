@@ -799,7 +799,6 @@
             }
 
             showLoginLoader();
-            const minWait = new Promise(resolve => setTimeout(resolve, 30000));
 
             try {
                 // Call backend login API
@@ -824,7 +823,6 @@
                         employees[empIndex] = { ...employees[empIndex], ...data.employee };
                     }
 
-                    await minWait;
                     hideLoginLoader();
                     showSection('dashboard');
                 } else {
@@ -844,7 +842,6 @@
                     if (empIndex >= 0) {
                         employees[empIndex] = { ...employees[empIndex], ...offlineEmployee };
                     }
-                    await minWait;
                     hideLoginLoader();
                     showSection('dashboard');
                 } else {
@@ -4780,28 +4777,65 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background-color: #e5e7eb;
+        background-color: rgba(80, 116, 128, 0.45);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         align-items: center;
         justify-content: center;
         touch-action: none;
     ">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="140" height="140" role="img" aria-label="Loading icon" style="max-width: 40vw; max-height: 40vw;">
-            <title>Loading icon</title>
-            <g transform="translate(256 256)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" style="width: 220px; height: 220px; max-width: 55vw; max-height: 55vw;">
+            <defs>
+                <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.22"/>
+                </filter>
+                <radialGradient id="bgGlowGreen" cx="38%" cy="35%" r="45%">
+                    <stop offset="0%" stop-color="#46d787" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#46d787" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="bgGlowBlue" cx="65%" cy="38%" r="32%">
+                    <stop offset="0%" stop-color="#36b8ff" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#36b8ff" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="bgGlowYellow" cx="28%" cy="70%" r="28%">
+                    <stop offset="0%" stop-color="#ffd630" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#ffd630" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="greenFill" x1="20%" y1="15%" x2="80%" y2="90%">
+                    <stop offset="0%" stop-color="#48d989"/>
+                    <stop offset="100%" stop-color="#18a95a"/>
+                </linearGradient>
+                <linearGradient id="blueFill" x1="25%" y1="10%" x2="75%" y2="95%">
+                    <stop offset="0%" stop-color="#62ccff"/>
+                    <stop offset="100%" stop-color="#1aa8ff"/>
+                </linearGradient>
+                <linearGradient id="yellowFill" x1="25%" y1="10%" x2="75%" y2="95%">
+                    <stop offset="0%" stop-color="#ffe45a"/>
+                    <stop offset="100%" stop-color="#f3c300"/>
+                </linearGradient>
+            </defs>
+            <ellipse cx="340" cy="300" rx="220" ry="220" fill="url(#bgGlowGreen)">
+                <animate attributeName="opacity" values="0.35;0.55;0.35" dur="1.8s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="610" cy="320" rx="180" ry="180" fill="url(#bgGlowBlue)">
+                <animate attributeName="opacity" values="0.28;0.48;0.28" dur="1.8s" begin="0.2s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="260" cy="635" rx="180" ry="180" fill="url(#bgGlowYellow)">
+                <animate attributeName="opacity" values="0.28;0.48;0.28" dur="1.8s" begin="0.4s" repeatCount="indefinite"/>
+            </ellipse>
+            <g transform="translate(450 450)" filter="url(#softShadow)">
                 <g>
-                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2.6s" repeatCount="indefinite"/>
-                    <!-- Green shape -->
-                    <path d="M-70 -150 C-110 -150 -142 -118 -142 -78 C-142 -43 -118 -15 -84 -8 C-57 -1 -39 17 -24 46 C-7 80 16 113 55 144 C72 157 92 166 112 166 C152 166 184 134 184 94 C184 54 152 22 112 22 C91 22 72 31 57 44 C29 5 6 -36 -12 -73 C-25 -102 -41 -126 -70 -150 Z" fill="#1FA55B">
-                        <animate attributeName="opacity" values="0.82;1;0.82" dur="1.4s" repeatCount="indefinite"/>
-                    </path>
-                    <!-- Blue drop -->
-                    <path d="M97 -126 C64 -126 37 -99 37 -66 C37 -38 54 -15 79 -5 C100 4 106 18 106 33 C106 54 123 71 144 71 C165 71 182 54 182 33 C182 18 188 4 209 -5 C234 -15 251 -38 251 -66 C251 -99 224 -126 191 -126 Z" fill="#2EB6FF">
-                        <animate attributeName="opacity" values="0.45;1;0.45" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
-                    </path>
-                    <!-- Yellow drop -->
-                    <path d="M-161 17 C-186 17 -206 37 -206 62 C-206 82 -193 100 -174 107 C-157 114 -150 126 -150 143 C-150 172 -126 196 -97 196 C-68 196 -44 172 -44 143 C-44 124 -36 109 -19 98 C-2 87 9 68 9 46 C9 16 -15 -8 -45 -8 C-65 -8 -81 3 -92 19 C-106 8 -123 1 -141 1 C-152 1 -161 8 -161 17 Z" fill="#F2C230">
-                        <animate attributeName="opacity" values="0.45;1;0.45" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
-                    </path>
+                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="1.6s" repeatCount="indefinite"/>
+                    <path d="M-174 -163 C-230 -163 -275 -118 -275 -62 C-275 -11 -240 30 -192 46 C-135 65 -74 99 -12 171 C35 225 96 281 181 311 C204 319 227 323 249 323 C306 323 352 277 352 220 C352 164 306 118 249 118 C212 118 178 137 154 168 C113 150 76 126 38 91 C-17 40 -57 -13 -83 -82 C-100 -127 -132 -163 -174 -163 Z" fill="url(#greenFill)" stroke="#0f7d43" stroke-width="4"/>
+                    <path d="M116 -171 C69 -171 31 -133 31 -86 C31 -46 56 -13 92 1 C122 14 132 34 132 60 C132 94 160 122 194 122 C228 122 256 94 256 60 C256 34 266 14 296 1 C332 -13 357 -46 357 -86 C357 -133 319 -171 272 -171 Z" fill="url(#blueFill)" stroke="#0e88d6" stroke-width="4"/>
+                    <path d="M-286 83 C-325 83 -357 115 -357 154 C-357 188 -335 216 -303 227 C-272 238 -255 265 -255 301 C-255 357 -210 402 -154 402 C-98 402 -53 357 -53 301 C-53 263 -36 232 -3 208 C25 188 44 155 44 114 C44 63 3 22 -48 22 C-83 22 -112 42 -129 70 C-154 53 -183 42 -214 42 C-254 42 -286 56 -286 83 Z" fill="url(#yellowFill)" stroke="#c79500" stroke-width="4"/>
+                    <ellipse cx="-186" cy="-118" rx="29" ry="17" transform="rotate(-48 -186 -118)" fill="white" fill-opacity="0.75"/>
+                    <circle cx="-214" cy="-95" r="7" fill="white" fill-opacity="0.72"/>
+                    <ellipse cx="152" cy="-119" rx="27" ry="16" transform="rotate(-50 152 -119)" fill="white" fill-opacity="0.72"/>
+                    <circle cx="124" cy="-98" r="7" fill="white" fill-opacity="0.68"/>
+                    <ellipse cx="-217" cy="112" rx="25" ry="16" transform="rotate(34 -217 112)" fill="white" fill-opacity="0.76"/>
+                    <ellipse cx="-214" cy="178" rx="17" ry="10" transform="rotate(-48 -214 178)" fill="white" fill-opacity="0.56"/>
+                    <ellipse cx="-247" cy="202" rx="15" ry="9" transform="rotate(-48 -247 202)" fill="white" fill-opacity="0.56"/>
                 </g>
             </g>
         </svg>
