@@ -2980,8 +2980,18 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             let totalTrips = 0;
             let totalPassengers = 0;
             const routeUsage = {};
+            const workersByRoute = {};
             let totalCancellations = 0;
             let totalScheduled = 0;
+
+            // Collect worker names per route (active employees only)
+            employees.forEach(emp => {
+                if (!emp.active) return;
+                if (!workersByRoute[emp.route]) workersByRoute[emp.route] = [];
+                if (!workersByRoute[emp.route].includes(emp.name)) {
+                    workersByRoute[emp.route].push(emp.name);
+                }
+            });
             
             // Get scheduled cancellations
             const cancellations = getScheduledCancellations();
@@ -3054,6 +3064,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 mostUsedRoute,
                 cancellationRate,
                 routeUsage,
+                workersByRoute,
                 totalPassengers,
                 totalCancellations,
                 totalScheduled
@@ -3073,8 +3084,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 const routeRows = routeEntries.map(([route, count], i) => {
                     const percentage = reportData.totalTrips > 0
                         ? ((count / reportData.totalTrips) * 100).toFixed(1) : '0';
+                    const driverName = drivers.find(d => d.route === route)?.name || '-';
+                    const workerNames = (reportData.workersByRoute[route] || []).join(', ') || '-';
                     return `<tr style="background:${i % 2 === 0 ? '#f5f7fa' : '#fff'}">
                         <td style="padding:8px 16px;border-bottom:1px solid #e5e7eb">${route}</td>
+                        <td style="padding:8px 16px;border-bottom:1px solid #e5e7eb">${driverName}</td>
+                        <td style="padding:8px 16px;border-bottom:1px solid #e5e7eb;font-size:12px">${workerNames}</td>
                         <td style="padding:8px 16px;border-bottom:1px solid #e5e7eb;text-align:center">${count}</td>
                         <td style="padding:8px 16px;border-bottom:1px solid #e5e7eb;text-align:center">${percentage}%</td>
                     </tr>`;
@@ -3162,12 +3177,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             <thead>
                 <tr>
                     <th>מסלול</th>
+                    <th>נהג/ת</th>
+                    <th>עובדים/ות</th>
                     <th style="text-align:center">מספר נסיעות</th>
                     <th style="text-align:center">אחוז מהסה"כ</th>
                 </tr>
             </thead>
             <tbody>
-                ${routeRows || '<tr><td colspan="3" style="text-align:center;padding:16px;color:#999">אין נתונים לחודש זה</td></tr>'}
+                ${routeRows || '<tr><td colspan="5" style="text-align:center;padding:16px;color:#999">אין נתונים לחודש זה</td></tr>'}
             </tbody>
         </table>
 
