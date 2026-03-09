@@ -320,6 +320,7 @@
         let sidebarOpen = window.innerWidth >= 1024; // Open on desktop, closed on mobile
         let modalState = { show: false, type: '', message: '', onConfirm: null, workerId: null, workerName: null, editEmployee: null, driverName: null };
         let selectedCancellationDates = new Set(); // For multi-date selection
+        let cancellationRangeStart = null; // For range selection
         let loggedInUserId = null; // Track logged-in user
         let routeModalState = { show: false, routeName: '', selectedLocations: [], map: null, autocomplete: null, markers: [] };
         let isGeocoding = false; // Prevent multiple simultaneous geocoding requests
@@ -2770,12 +2771,41 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         }
 
         function toggleDateSelection(date) {
-            if (selectedCancellationDates.has(date)) {
-                selectedCancellationDates.delete(date);
+            const scrollY = window.scrollY;
+
+            if (cancellationRangeStart === null) {
+                // First click — start or toggle
+                if (selectedCancellationDates.has(date)) {
+                    selectedCancellationDates.delete(date);
+                } else {
+                    cancellationRangeStart = date;
+                    selectedCancellationDates.add(date);
+                }
             } else {
-                selectedCancellationDates.add(date);
+                // Second click — fill range
+                if (date === cancellationRangeStart) {
+                    // Clicked same date again — deselect and cancel
+                    selectedCancellationDates.delete(date);
+                    cancellationRangeStart = null;
+                } else {
+                    const start = cancellationRangeStart < date ? cancellationRangeStart : date;
+                    const end = cancellationRangeStart < date ? date : cancellationRangeStart;
+                    const today = getTodayDateString();
+                    const d = new Date(start);
+                    const endDate = new Date(end);
+                    while (d <= endDate) {
+                        const dateStr = d.toISOString().slice(0, 10);
+                        if (dateStr >= today) {
+                            selectedCancellationDates.add(dateStr);
+                        }
+                        d.setDate(d.getDate() + 1);
+                    }
+                    cancellationRangeStart = null;
+                }
             }
+
             render();
+            window.scrollTo(0, scrollY);
         }
 
         function cancelSelectedRides() {
@@ -2794,6 +2824,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             
             addScheduledCancellation(workerId, datesArray);
             selectedCancellationDates.clear();
+            cancellationRangeStart = null;
             
             alert(`בוטלו ${datesArray.length} נסיעות בהצלחה!`);
             render();
