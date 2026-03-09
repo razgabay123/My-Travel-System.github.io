@@ -2842,6 +2842,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <span class="font-bold">${employees.find(e => e.id === workerId)?.name || 'לא נמצא'}</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-600">קוד עובד/ת:</span>
+                                    <span class="font-bold">${employees.find(e => e.id === workerId)?.workerCode || employees.find(e => e.id === workerId)?.id || 'לא נמצא'}</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-600">מסלול:</span>
                                     <span class="font-bold">מסלול א</span>
                                 </div>
