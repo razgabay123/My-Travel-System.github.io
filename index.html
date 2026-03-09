@@ -767,6 +767,20 @@
             render();
         }
 
+        function showLoginLoader() {
+            const overlay = document.getElementById('loginLoadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function hideLoginLoader() {
+            const overlay = document.getElementById('loginLoadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
         async function handleLogin() {
             const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
@@ -783,6 +797,8 @@
                 alert('נא למלא את כל השדות');
                 return;
             }
+
+            showLoginLoader();
 
             try {
                 // Call backend login API
@@ -810,6 +826,7 @@
                     showSection('dashboard');
                 } else {
                     // Login failed
+                    hideLoginLoader();
                     alert(data.error === 'Invalid credentials' ?
                         'שם משתמש או סיסמה לא נכונים' :
                         'שגיאה בהתחברות. יש לנסות שוב.');
@@ -826,6 +843,7 @@
                     }
                     showSection('dashboard');
                 } else {
+                    hideLoginLoader();
                     alert('לא ניתן להתחבר לשרת. אם התחברת בעבר מהמכשיר הזה, בדוק שם משתמש וסיסמה ונסה שוב.');
                 }
             }
@@ -4750,6 +4768,41 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         // Start the app
         initApp();
     </script>
+
+    <!-- Login loading overlay -->
+    <div id="loginLoadingOverlay" style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background-color: rgba(80, 116, 128, 0.85);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+    ">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="140" height="140" role="img" aria-label="Loading icon" style="max-width: 40vw; max-height: 40vw;">
+            <title>Loading icon</title>
+            <g transform="translate(256 256)">
+                <g>
+                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2.6s" repeatCount="indefinite"/>
+                    <!-- Green shape -->
+                    <path d="M-70 -150 C-110 -150 -142 -118 -142 -78 C-142 -43 -118 -15 -84 -8 C-57 -1 -39 17 -24 46 C-7 80 16 113 55 144 C72 157 92 166 112 166 C152 166 184 134 184 94 C184 54 152 22 112 22 C91 22 72 31 57 44 C29 5 6 -36 -12 -73 C-25 -102 -41 -126 -70 -150 Z" fill="#1FA55B">
+                        <animate attributeName="opacity" values="0.82;1;0.82" dur="1.4s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Blue drop -->
+                    <path d="M97 -126 C64 -126 37 -99 37 -66 C37 -38 54 -15 79 -5 C100 4 106 18 106 33 C106 54 123 71 144 71 C165 71 182 54 182 33 C182 18 188 4 209 -5 C234 -15 251 -38 251 -66 C251 -99 224 -126 191 -126 Z" fill="#2EB6FF">
+                        <animate attributeName="opacity" values="0.45;1;0.45" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Yellow drop -->
+                    <path d="M-161 17 C-186 17 -206 37 -206 62 C-206 82 -193 100 -174 107 C-157 114 -150 126 -150 143 C-150 172 -126 196 -97 196 C-68 196 -44 172 -44 143 C-44 124 -36 109 -19 98 C-2 87 9 68 9 46 C9 16 -15 -8 -45 -8 C-65 -8 -81 3 -92 19 C-106 8 -123 1 -141 1 C-152 1 -161 8 -161 17 Z" fill="#F2C230">
+                        <animate attributeName="opacity" values="0.45;1;0.45" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
+                    </path>
+                </g>
+            </g>
+        </svg>
+    </div>
 </body>
 
 </html>
