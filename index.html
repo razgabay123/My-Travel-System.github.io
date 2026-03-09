@@ -4787,58 +4787,30 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         justify-content: center;
         touch-action: none;
     ">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" style="width: 220px; height: 220px; max-width: 55vw; max-height: 55vw;">
-            <defs>
-                <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-                    <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.22"/>
-                </filter>
-                <radialGradient id="bgGlowGreen" cx="38%" cy="35%" r="45%">
-                    <stop offset="0%" stop-color="#46d787" stop-opacity="0.35"/>
-                    <stop offset="100%" stop-color="#46d787" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="bgGlowBlue" cx="65%" cy="38%" r="32%">
-                    <stop offset="0%" stop-color="#36b8ff" stop-opacity="0.35"/>
-                    <stop offset="100%" stop-color="#36b8ff" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="bgGlowYellow" cx="28%" cy="70%" r="28%">
-                    <stop offset="0%" stop-color="#ffd630" stop-opacity="0.35"/>
-                    <stop offset="100%" stop-color="#ffd630" stop-opacity="0"/>
-                </radialGradient>
-                <linearGradient id="greenFill" x1="20%" y1="15%" x2="80%" y2="90%">
-                    <stop offset="0%" stop-color="#48d989"/>
-                    <stop offset="100%" stop-color="#18a95a"/>
-                </linearGradient>
-                <linearGradient id="blueFill" x1="25%" y1="10%" x2="75%" y2="95%">
-                    <stop offset="0%" stop-color="#62ccff"/>
-                    <stop offset="100%" stop-color="#1aa8ff"/>
-                </linearGradient>
-                <linearGradient id="yellowFill" x1="25%" y1="10%" x2="75%" y2="95%">
-                    <stop offset="0%" stop-color="#ffe45a"/>
-                    <stop offset="100%" stop-color="#f3c300"/>
-                </linearGradient>
-            </defs>
-            <ellipse cx="340" cy="300" rx="220" ry="220" fill="url(#bgGlowGreen)">
-                <animate attributeName="opacity" values="0.35;0.55;0.35" dur="1.8s" repeatCount="indefinite"/>
-            </ellipse>
-            <ellipse cx="610" cy="320" rx="180" ry="180" fill="url(#bgGlowBlue)">
-                <animate attributeName="opacity" values="0.28;0.48;0.28" dur="1.8s" begin="0.2s" repeatCount="indefinite"/>
-            </ellipse>
-            <ellipse cx="260" cy="635" rx="180" ry="180" fill="url(#bgGlowYellow)">
-                <animate attributeName="opacity" values="0.28;0.48;0.28" dur="1.8s" begin="0.4s" repeatCount="indefinite"/>
-            </ellipse>
-            <g transform="translate(450 450)" filter="url(#softShadow)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" style="width: 180px; height: 180px; max-width: 50vw; max-height: 50vw;">
+            <!-- Three Novolog-style teardrops: green top-left, blue top-right, yellow bottom -->
+            <!-- Arranged in a flat-top equilateral triangle, all pointing upward -->
+            <g transform="translate(90,90)">
                 <g>
-                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="1.6s" repeatCount="indefinite"/>
-                    <path d="M-174 -163 C-230 -163 -275 -118 -275 -62 C-275 -11 -240 30 -192 46 C-135 65 -74 99 -12 171 C35 225 96 281 181 311 C204 319 227 323 249 323 C306 323 352 277 352 220 C352 164 306 118 249 118 C212 118 178 137 154 168 C113 150 76 126 38 91 C-17 40 -57 -13 -83 -82 C-100 -127 -132 -163 -174 -163 Z" fill="url(#greenFill)" stroke="#0f7d43" stroke-width="4"/>
-                    <path d="M116 -171 C69 -171 31 -133 31 -86 C31 -46 56 -13 92 1 C122 14 132 34 132 60 C132 94 160 122 194 122 C228 122 256 94 256 60 C256 34 266 14 296 1 C332 -13 357 -46 357 -86 C357 -133 319 -171 272 -171 Z" fill="url(#blueFill)" stroke="#0e88d6" stroke-width="4"/>
-                    <path d="M-286 83 C-325 83 -357 115 -357 154 C-357 188 -335 216 -303 227 C-272 238 -255 265 -255 301 C-255 357 -210 402 -154 402 C-98 402 -53 357 -53 301 C-53 263 -36 232 -3 208 C25 188 44 155 44 114 C44 63 3 22 -48 22 C-83 22 -112 42 -129 70 C-154 53 -183 42 -214 42 C-254 42 -286 56 -286 83 Z" fill="url(#yellowFill)" stroke="#c79500" stroke-width="4"/>
-                    <ellipse cx="-186" cy="-118" rx="29" ry="17" transform="rotate(-48 -186 -118)" fill="white" fill-opacity="0.75"/>
-                    <circle cx="-214" cy="-95" r="7" fill="white" fill-opacity="0.72"/>
-                    <ellipse cx="152" cy="-119" rx="27" ry="16" transform="rotate(-50 152 -119)" fill="white" fill-opacity="0.72"/>
-                    <circle cx="124" cy="-98" r="7" fill="white" fill-opacity="0.68"/>
-                    <ellipse cx="-217" cy="112" rx="25" ry="16" transform="rotate(34 -217 112)" fill="white" fill-opacity="0.76"/>
-                    <ellipse cx="-214" cy="178" rx="17" ry="10" transform="rotate(-48 -214 178)" fill="white" fill-opacity="0.56"/>
-                    <ellipse cx="-247" cy="202" rx="15" ry="9" transform="rotate(-48 -247 202)" fill="white" fill-opacity="0.56"/>
+                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2s" repeatCount="indefinite"/>
+                    <!-- Green drop (top-left) -->
+                    <g transform="translate(-38,-22)">
+                        <path d="M0,-24 C14,-24 18,-6 18,6 A18,18 0 0,1 -18,6 C-18,-6 -14,-24 0,-24 Z" fill="#1FA55B">
+                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
+                    <!-- Blue drop (top-right) -->
+                    <g transform="translate(38,-22)">
+                        <path d="M0,-24 C14,-24 18,-6 18,6 A18,18 0 0,1 -18,6 C-18,-6 -14,-24 0,-24 Z" fill="#2EB6FF">
+                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
+                    <!-- Yellow drop (bottom) -->
+                    <g transform="translate(0,44)">
+                        <path d="M0,-24 C14,-24 18,-6 18,6 A18,18 0 0,1 -18,6 C-18,-6 -14,-24 0,-24 Z" fill="#F2C230">
+                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
                 </g>
             </g>
         </svg>
