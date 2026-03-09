@@ -4788,26 +4788,25 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         touch-action: none;
     ">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" style="width: 180px; height: 180px; max-width: 50vw; max-height: 50vw;">
-            <!-- Novolog N-icon: yellow inverted drop (bottom-left foot),
-                 green diagonal swab (middle stroke), blue drop tip-up (right leg) -->
+            <!-- Novolog N-icon: water drop shapes + dumbbell diagonal -->
             <g transform="translate(80,80)">
                 <g>
                     <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2s" repeatCount="indefinite"/>
-                    <!-- Yellow drop: tip pointing UP — bottom-left foot of the N -->
-                    <g transform="translate(-32,24)">
-                        <path d="M0,-22 C11,-22 15,-8 15,5 A15,15 0 0,1 -15,5 C-15,-8 -11,-22 0,-22 Z" fill="#F2C230">
+                    <!-- Yellow water drop: elongated teardrop, tip UP — bottom-left of N -->
+                    <g transform="translate(-32,22)">
+                        <path d="M0,-28 C8,-28 14,-14 14,5 A14,14 0 0,1 -14,5 C-14,-14 -8,-28 0,-28 Z" fill="#F2C230">
                             <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" repeatCount="indefinite"/>
                         </path>
                     </g>
-                    <!-- Green swab: elongated capsule rotated to form the diagonal of the N -->
-                    <g transform="translate(0,0) rotate(32)">
-                        <path d="M-30,-7 A7,7 0 0,0 -30,7 L30,7 A7,7 0 0,0 30,-7 Z" fill="#1FA55B">
+                    <!-- Green dumbbell: two rounded blobs with narrow neck, diagonal middle of N -->
+                    <g transform="translate(0,2) rotate(32)">
+                        <path d="M-20,-12 C-32,-12 -32,12 -20,12 C-12,12 -7,7 0,7 C7,7 12,12 20,12 C32,12 32,-12 20,-12 C12,-12 7,-7 0,-7 C-7,-7 -12,-12 -20,-12 Z" fill="#1FA55B">
                             <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
                         </path>
                     </g>
-                    <!-- Blue drop: tip pointing UP — right leg of the N -->
-                    <g transform="translate(32,-16)">
-                        <path d="M0,-22 C11,-22 15,-8 15,5 A15,15 0 0,1 -15,5 C-15,-8 -11,-22 0,-22 Z" fill="#2EB6FF">
+                    <!-- Blue water drop: elongated teardrop, tip UP — right leg of N -->
+                    <g transform="translate(30,-16)">
+                        <path d="M0,-28 C8,-28 14,-14 14,5 A14,14 0 0,1 -14,5 C-14,-14 -8,-28 0,-28 Z" fill="#2EB6FF">
                             <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
                         </path>
                     </g>
