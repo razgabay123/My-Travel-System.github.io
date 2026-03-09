@@ -185,6 +185,11 @@
                 transform: translateX(-50%);
             }
         }
+
+        @keyframes nvSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -4787,32 +4792,21 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         justify-content: center;
         touch-action: none;
     ">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" style="width: 180px; height: 180px; max-width: 50vw; max-height: 50vw;">
-            <!-- Novolog N-icon: water drop shapes + dumbbell diagonal -->
-            <g transform="translate(80,80)">
-                <g>
-                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2s" repeatCount="indefinite"/>
-                    <!-- Yellow water drop: elongated teardrop, tip UP — bottom-left of N -->
-                    <g transform="translate(-32,22)">
-                        <path d="M0,-28 C8,-28 14,-14 14,5 A14,14 0 0,1 -14,5 C-14,-14 -8,-28 0,-28 Z" fill="#F2C230">
-                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" repeatCount="indefinite"/>
-                        </path>
-                    </g>
-                    <!-- Green dumbbell: two rounded blobs with narrow neck, diagonal middle of N -->
-                    <g transform="translate(0,2) rotate(32)">
-                        <path d="M-20,-12 C-32,-12 -32,12 -20,12 C-12,12 -7,7 0,7 C7,7 12,12 20,12 C32,12 32,-12 20,-12 C12,-12 7,-7 0,-7 C-7,-7 -12,-12 -20,-12 Z" fill="#1FA55B">
-                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.25s" repeatCount="indefinite"/>
-                        </path>
-                    </g>
-                    <!-- Blue water drop: elongated teardrop, tip UP — right leg of N -->
-                    <g transform="translate(30,-16)">
-                        <path d="M0,-28 C8,-28 14,-14 14,5 A14,14 0 0,1 -14,5 C-14,-14 -8,-28 0,-28 Z" fill="#2EB6FF">
-                            <animate attributeName="opacity" values="0.75;1;0.75" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
-                        </path>
-                    </g>
-                </g>
-            </g>
-        </svg>
+        <!-- Crop to icon-only: image is 256x48px; at height 120px it scales to 640px wide.
+             The icon occupies the leftmost ~120px so overflow:hidden clips the text. -->
+        <div style="
+            width: min(120px, 45vw);
+            height: min(120px, 45vw);
+            overflow: hidden;
+            animation: nvSpin 2s linear infinite;
+            flex-shrink: 0;
+        ">
+            <img
+                src="https://cdn.prod.website-files.com/61e3d989a957644834928d2e/61e91852fe551d393d93ee7a_slice-ic-logo-novolog-full-color.png"
+                alt="Novolog"
+                style="height: min(120px, 45vw); width: auto; max-width: none; display: block;"
+            >
+        </div>
     </div>
 </body>
 
