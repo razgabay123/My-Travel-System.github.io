@@ -799,6 +799,7 @@
             }
 
             showLoginLoader();
+            const minWait = new Promise(resolve => setTimeout(resolve, 3000));
 
             try {
                 // Call backend login API
@@ -823,6 +824,7 @@
                         employees[empIndex] = { ...employees[empIndex], ...data.employee };
                     }
 
+                    await minWait;
                     hideLoginLoader();
                     showSection('dashboard');
                 } else {
@@ -842,6 +844,7 @@
                     if (empIndex >= 0) {
                         employees[empIndex] = { ...employees[empIndex], ...offlineEmployee };
                     }
+                    await minWait;
                     hideLoginLoader();
                     showSection('dashboard');
                 } else {
