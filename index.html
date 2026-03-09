@@ -799,6 +799,7 @@
             }
 
             showLoginLoader();
+            const minWait = new Promise(resolve => setTimeout(resolve, 30000));
 
             try {
                 // Call backend login API
@@ -823,6 +824,8 @@
                         employees[empIndex] = { ...employees[empIndex], ...data.employee };
                     }
 
+                    await minWait;
+                    hideLoginLoader();
                     showSection('dashboard');
                 } else {
                     // Login failed
@@ -841,6 +844,8 @@
                     if (empIndex >= 0) {
                         employees[empIndex] = { ...employees[empIndex], ...offlineEmployee };
                     }
+                    await minWait;
+                    hideLoginLoader();
                     showSection('dashboard');
                 } else {
                     hideLoginLoader();
@@ -4775,9 +4780,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background-color: rgba(80, 116, 128, 0.85);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        background-color: #e5e7eb;
         align-items: center;
         justify-content: center;
         touch-action: none;
