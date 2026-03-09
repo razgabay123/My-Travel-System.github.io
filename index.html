@@ -1970,9 +1970,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 text-gray-600 text-xs lg:text-base font-medium whitespace-nowrap">${emp.time}</td>
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 text-gray-600 text-xs lg:text-sm whitespace-nowrap">${emp.username || emp.id || '-'}</td>
                                             <td class="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
-                                                <button onclick="deleteEmployeePermanently(${emp.id})" class="p-1 lg:p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.error}; background-color: ${COLORS.error}22;" title="מחיקה לצמיתות">
-                                                    <i class="fas fa-trash-alt text-sm lg:text-base"></i>
-                                                </button>
+                                                <div class="flex items-center gap-2">
+                                                    <button onclick="handleEdit(${emp.id})" class="p-1 lg:p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.primary}; background-color: rgba(${parseInt(COLORS.primary.slice(1, 3), 16)}, ${parseInt(COLORS.primary.slice(3, 5), 16)}, ${parseInt(COLORS.primary.slice(5, 7), 16)}, 0.08);" title="עריכה">
+                                                        <i class="fas fa-edit text-sm lg:text-base"></i>
+                                                    </button>
+                                                    <button onclick="deleteEmployeePermanently(${emp.id})" class="p-1 lg:p-2 rounded transition flex-shrink-0 hover:opacity-80" style="color: ${COLORS.error}; background-color: ${COLORS.error}22;" title="מחיקה לצמיתות">
+                                                        <i class="fas fa-trash-alt text-sm lg:text-base"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     `).join('')}
