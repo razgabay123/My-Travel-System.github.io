@@ -22,7 +22,12 @@
       "Bash(where:*)",
       "Bash(\"C:\\\\Program Files\\\\Git\\\\mingw64\\\\bin\\\\git-credential-manager.exe\" --version)",
       "WebFetch(domain:razgabay123.github.io)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebSearch",
+      "WebFetch(domain:www.novolog.co.il)",
+      "WebFetch(domain:cdn.prod.website-files.com)",
+      "Bash(node -e \":*)",
+      "Bash(node _patch_calendar.js)"
     ]
   }
 }

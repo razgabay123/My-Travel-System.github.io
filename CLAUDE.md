@@ -8,4 +8,4 @@
 - This project uses a service worker. After making changes to JS/HTML files, always update the service worker cache version or add cache-busting. Stale service worker caches have caused old code to load instead of new fixes.
 - When modifying PWA install behavior, only change the specific platform requested (iOS vs Android). Do not add query parameters (?v=X) to icon paths in manifest.json as this breaks PWABuilder recognition.
 - If a bug fix attempt doesn't work after 2 tries, stop and re-examine the root cause from scratch rather than layering more hypotheses. Ask the user for browser console output or a screen recording if needed.
-- Whenever finishing a change use /deploy to get it ready for github
+- Whenever finishing a change test up and use /deploy
