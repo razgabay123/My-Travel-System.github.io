@@ -21,9 +21,9 @@ Thumbs.db
 # Logs
 *.log
 
-# Database (contains user passwords - never commit!)
-backend/travel-system.db
+# Database files (travel-system.db is tracked intentionally)
 *.db
+!backend/travel-system.db
 
 # Environment variables (may contain secrets)
 .env
