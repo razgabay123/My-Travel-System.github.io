@@ -40,27 +40,21 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ error: 'Username and password required' });
         }
 
-        // Find employee by username or worker code
-        const employee = employeeQueries.getByUsernameOrCode(username);
+        const employee = await employeeQueries.getByUsernameOrCode(username);
 
         if (!employee) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Verify password
         const isValid = await verifyPassword(password, employee.password);
 
         if (!isValid) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Don't send password back
         delete employee.password;
 
-        res.json({
-            success: true,
-            employee: employee
-        });
+        res.json({ success: true, employee });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -76,11 +70,8 @@ app.post('/api/auth/change-password', async (req, res) => {
             return res.status(400).json({ error: 'Employee ID and new password required' });
         }
 
-        // Hash new password
         const hashedPassword = await hashPassword(newPassword);
-
-        // Update password
-        employeeQueries.updatePassword(hashedPassword, employeeId);
+        await employeeQueries.updatePassword(hashedPassword, employeeId);
 
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
@@ -92,13 +83,10 @@ app.post('/api/auth/change-password', async (req, res) => {
 // ==================== EMPLOYEE ENDPOINTS ====================
 
 // Get all employees
-app.get('/api/employees', (req, res) => {
+app.get('/api/employees', async (req, res) => {
     try {
-        const employees = employeeQueries.getAll();
-
-        // Remove passwords from response
+        const employees = await employeeQueries.getAll();
         employees.forEach(emp => delete emp.password);
-
         res.json({ employees });
     } catch (error) {
         console.error('Get employees error:', error);
@@ -107,9 +95,9 @@ app.get('/api/employees', (req, res) => {
 });
 
 // Get employee by ID
-app.get('/api/employees/:id', (req, res) => {
+app.get('/api/employees/:id', async (req, res) => {
     try {
-        const employee = employeeQueries.getById(req.params.id);
+        const employee = await employeeQueries.getById(req.params.id);
 
         if (!employee) {
             return res.status(404).json({ error: 'Employee not found' });
@@ -132,11 +120,9 @@ app.post('/api/employees', async (req, res) => {
             return res.status(400).json({ error: 'Username, password, and name are required' });
         }
 
-        // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Create employee
-        const result = employeeQueries.create({
+        const result = await employeeQueries.create({
             workerCode: workerCode || null,
             username,
             password: hashedPassword,
@@ -155,7 +141,7 @@ app.post('/api/employees', async (req, res) => {
         res.json({ success: true, id: result.lastInsertRowid });
     } catch (error) {
         console.error('Create employee error:', error);
-        if (error.message.includes('UNIQUE')) {
+        if (error.code === '23505') {
             return res.status(400).json({ error: 'Username or worker code already exists' });
         }
         res.status(500).json({ error: 'Internal server error' });
@@ -163,7 +149,7 @@ app.post('/api/employees', async (req, res) => {
 });
 
 // Update employee
-app.put('/api/employees/:id', (req, res) => {
+app.put('/api/employees/:id', async (req, res) => {
     try {
         const { workerCode, username, name, address, city, phone, route, time, department, company, email, active } = req.body;
 
@@ -171,8 +157,7 @@ app.put('/api/employees/:id', (req, res) => {
             return res.status(400).json({ error: 'Username and name are required' });
         }
 
-        // Update employee (don't update password here)
-        employeeQueries.update({
+        await employeeQueries.update({
             id: req.params.id,
             workerCode: workerCode || null,
             username,
@@ -191,7 +176,7 @@ app.put('/api/employees/:id', (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Update employee error:', error);
-        if (error.message.includes('UNIQUE')) {
+        if (error.code === '23505') {
             return res.status(400).json({ error: 'Username or worker code already exists' });
         }
         res.status(500).json({ error: 'Internal server error' });
@@ -199,9 +184,9 @@ app.put('/api/employees/:id', (req, res) => {
 });
 
 // Delete employee
-app.delete('/api/employees/:id', (req, res) => {
+app.delete('/api/employees/:id', async (req, res) => {
     try {
-        employeeQueries.delete(req.params.id);
+        await employeeQueries.delete(req.params.id);
         res.json({ success: true });
     } catch (error) {
         console.error('Delete employee error:', error);
@@ -212,9 +197,9 @@ app.delete('/api/employees/:id', (req, res) => {
 // ==================== DRIVER ENDPOINTS ====================
 
 // Get all drivers
-app.get('/api/drivers', (req, res) => {
+app.get('/api/drivers', async (req, res) => {
     try {
-        const drivers = driverQueries.getAll();
+        const drivers = await driverQueries.getAll();
         res.json({ drivers });
     } catch (error) {
         console.error('Get drivers error:', error);
@@ -223,7 +208,7 @@ app.get('/api/drivers', (req, res) => {
 });
 
 // Create driver
-app.post('/api/drivers', (req, res) => {
+app.post('/api/drivers', async (req, res) => {
     try {
         const { name, phone, route, city, vehicle, passengers } = req.body;
 
@@ -231,7 +216,7 @@ app.post('/api/drivers', (req, res) => {
             return res.status(400).json({ error: 'Driver name is required' });
         }
 
-        const result = driverQueries.create({
+        const result = await driverQueries.create({
             name,
             phone: phone || null,
             route: route || null,
@@ -248,7 +233,7 @@ app.post('/api/drivers', (req, res) => {
 });
 
 // Update driver
-app.put('/api/drivers/:id', (req, res) => {
+app.put('/api/drivers/:id', async (req, res) => {
     try {
         const { name, phone, route, city, vehicle, passengers } = req.body;
 
@@ -256,7 +241,7 @@ app.put('/api/drivers/:id', (req, res) => {
             return res.status(400).json({ error: 'Driver name is required' });
         }
 
-        driverQueries.update({
+        await driverQueries.update({
             id: req.params.id,
             name,
             phone: phone || null,
@@ -274,9 +259,9 @@ app.put('/api/drivers/:id', (req, res) => {
 });
 
 // Delete driver
-app.delete('/api/drivers/:id', (req, res) => {
+app.delete('/api/drivers/:id', async (req, res) => {
     try {
-        driverQueries.delete(req.params.id);
+        await driverQueries.delete(req.params.id);
         res.json({ success: true });
     } catch (error) {
         console.error('Delete driver error:', error);
@@ -296,7 +281,7 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════════╗
 ║   🚀 Travel System Backend Server           ║
 ║   Port: ${PORT}                              ║
-║   Database: SQLite (travel-system.db)       ║
+║   Database: PostgreSQL                      ║
 ║   Status: ✅ Running                         ║
 ╚══════════════════════════════════════════════╝
     `);

@@ -1,32 +1,17 @@
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
-const fs = require('fs');
-const path = require('path');
 
-const dbPath = path.join(__dirname, 'travel-system.db');
-let db = null;
-let SQL = null;
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: false
+});
 
 // Initialize database
 async function initDatabase() {
-    // Initialize sql.js
-    SQL = await initSqlJs();
-
-    // Load existing database or create new one
-    if (fs.existsSync(dbPath)) {
-        const buffer = fs.readFileSync(dbPath);
-        db = new SQL.Database(buffer);
-        console.log('✅ Existing database loaded');
-    } else {
-        db = new SQL.Database();
-        console.log('✅ New database created');
-    }
-
-    // Create tables
-    db.run(`
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            workerCode TEXT UNIQUE,
+            id SERIAL PRIMARY KEY,
+            "workerCode" TEXT UNIQUE,
             username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL,
             name TEXT NOT NULL,
@@ -39,85 +24,111 @@ async function initDatabase() {
             company TEXT,
             email TEXT,
             active INTEGER DEFAULT 1,
-            createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+            "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
 
-    db.run(`
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS drivers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             phone TEXT,
             route TEXT,
             city TEXT,
             vehicle TEXT,
             passengers INTEGER DEFAULT 0,
-            createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+            "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
 
-    // Add email column if it doesn't exist (migration for existing databases)
-    try {
-        db.run('ALTER TABLE employees ADD COLUMN email TEXT');
-        console.log('✅ Added email column to employees table');
-    } catch (e) {
-        // Column already exists, ignore
+    // Seed initial data if tables are empty
+    const { rows } = await pool.query('SELECT COUNT(*) FROM employees');
+    if (parseInt(rows[0].count) === 0) {
+        await seedData();
     }
 
     console.log('✅ Database tables initialized');
-    saveDatabase();
 }
 
-// Save database to file
-function saveDatabase() {
-    if (!db) return;
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(dbPath, buffer);
+async function seedData() {
+    const hash1234 = '$2b$10$zmaDjCj4JwmQhc7YVRd.huRzdeiCUttq9dzlpFXFCc3/v8LjpCAaK';
+    const hashOmri = '$2b$10$Hf.ytieDb9Z.ny4ZF56xcOzcEu2/k118W3HyRPAj.14v0Ekj5eqAq';
+
+    const employees = [
+        [null, 'גרסיוטה', hash1234, 'אירנה גרסיוטה', 'חרצית 21', 'מודיעין', '055-66-01117', 'מסלול א', '07:12', null, 'טריילוג', null, 1],
+        ['8228', 'בן אליהו', hashOmri, 'עמרי בן אליהו', 'עמק האלה 9', 'מודיעין', '052-377-7468', 'מסלול א', '07:22', 'החזרות', null, null, 1],
+        [null, 'מורנוב', hash1234, 'קסניה מורנוב', 'כסלו 33', 'מודיעין', '054-223-4455', 'מסלול א', '07:27', 'שירות לקוחות', null, null, 0],
+        [null, 'אלטרס', hash1234, 'שמואל אלטרס', 'חטיבת אלכסנדרוני 3', 'מודיעין', '053-998-7766', 'מסלול ב', '07:31', 'הפצה', null, null, 1],
+        [null, 'בן הרוש', hash1234, 'שובל בן הרוש', 'ירח אב 9', 'מודיעין', '050-778-8990', 'מסלול א', '07:45', 'הפצה', null, null, 1],
+        [null, 'בן יתח', hash1234, 'מרום בן יתח', 'יגאל ידין 3', 'מודיעין', '050-986-0774', 'מסלול ב', '07:15', 'הפצה', null, null, 1],
+        [null, 'דרעי', hash1234, 'אופק דרעי', 'הפיקוס 6', 'מודיעין', '052-668-1853', 'מסלול ב', '07:15', 'הפצה', null, null, 1],
+        [null, 'אביבה', hash1234, 'אביבה', 'סלעית 9', 'מודיעין', null, 'מסלול א', '07:00', 'כספים', null, null, 1],
+        [null, 'נהוראי', hash1234, 'אור נהוראי', 'חטיבת אלכסנדרוני 3', 'מודיעין', '054-423-8314', 'מסלול ב', '07:00', 'הפצה', null, null, 1],
+    ];
+
+    for (const emp of employees) {
+        await pool.query(`
+            INSERT INTO employees ("workerCode", username, password, name, address, city, phone, route, time, department, company, email, active)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        `, emp);
+    }
+
+    const drivers = [
+        ['שמוליק', '053-888-7766', 'מסלול א', 'מודיעין', 'מרצדס ספרינטר', 4],
+        ['שמוליק', '053-888-7766', 'מסלול ב', 'מודיעין', 'מרצדס ספרינטר', 4],
+        ['רפי', '052-999-8877', 'מסלול ג', 'מודיעין', 'מרצדס ספרינטר', 0],
+        ['אורי', '054-777-6655', 'מסלול ד', 'מודיעין', 'פולקסווגן קראפטר', 0],
+        ['רמי', '050-111-2233', 'מסלול ה', 'מודיעין', 'פולקסווגן קראפטר', 0],
+        ['בצלאל', '052-444-5566', 'מסלול ו', 'מודיעין', 'מרצדס ספרינטר', 0],
+    ];
+
+    for (const drv of drivers) {
+        await pool.query(`
+            INSERT INTO drivers (name, phone, route, city, vehicle, passengers)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, drv);
+    }
+
+    console.log('✅ Seed data inserted');
 }
 
 // Helper functions for employees
 const employeeQueries = {
-    getAll: () => {
-        const result = db.exec('SELECT * FROM employees ORDER BY id');
-        if (result.length === 0) return [];
-        return result[0].values.map(row => rowToObject(result[0].columns, row));
+    getAll: async () => {
+        const { rows } = await pool.query('SELECT * FROM employees ORDER BY id');
+        return rows;
     },
 
-    getById: (id) => {
-        const result = db.exec('SELECT * FROM employees WHERE id = ?', [id]);
-        if (result.length === 0 || result[0].values.length === 0) return null;
-        return rowToObject(result[0].columns, result[0].values[0]);
+    getById: async (id) => {
+        const { rows } = await pool.query('SELECT * FROM employees WHERE id = $1', [id]);
+        return rows[0] || null;
     },
 
-    getByUsername: (username) => {
-        const result = db.exec('SELECT * FROM employees WHERE username = ?', [username]);
-        if (result.length === 0 || result[0].values.length === 0) return null;
-        return rowToObject(result[0].columns, result[0].values[0]);
+    getByUsername: async (username) => {
+        const { rows } = await pool.query('SELECT * FROM employees WHERE username = $1', [username]);
+        return rows[0] || null;
     },
 
-    getByWorkerCode: (code) => {
-        const result = db.exec('SELECT * FROM employees WHERE workerCode = ?', [code]);
-        if (result.length === 0 || result[0].values.length === 0) return null;
-        return rowToObject(result[0].columns, result[0].values[0]);
+    getByWorkerCode: async (code) => {
+        const { rows } = await pool.query('SELECT * FROM employees WHERE "workerCode" = $1', [code]);
+        return rows[0] || null;
     },
 
-    getByUsernameOrCode: (username) => {
-        // Search by username, workerCode, id, or name
-        const result = db.exec(
-            'SELECT * FROM employees WHERE username = ? OR workerCode = ? OR CAST(id AS TEXT) = ? OR name = ?',
+    getByUsernameOrCode: async (username) => {
+        const { rows } = await pool.query(
+            'SELECT * FROM employees WHERE username = $1 OR "workerCode" = $2 OR CAST(id AS TEXT) = $3 OR name = $4',
             [username, username, username, username]
         );
-        if (result.length === 0 || result[0].values.length === 0) return null;
-        return rowToObject(result[0].columns, result[0].values[0]);
+        return rows[0] || null;
     },
 
-    create: (employee) => {
-        db.run(`
-            INSERT INTO employees (workerCode, username, password, name, address, city, phone, route, time, department, company, email, active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    create: async (employee) => {
+        const { rows } = await pool.query(`
+            INSERT INTO employees ("workerCode", username, password, name, address, city, phone, route, time, department, company, email, active)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING id
         `, [
             employee.workerCode || null,
             employee.username,
@@ -133,30 +144,26 @@ const employeeQueries = {
             employee.email || null,
             employee.active !== undefined ? employee.active : 1
         ]);
-        saveDatabase();
-
-        // Get last insert ID
-        const result = db.exec('SELECT last_insert_rowid() as id');
-        return { lastInsertRowid: result[0].values[0][0] };
+        return { lastInsertRowid: rows[0].id };
     },
 
-    update: (employee) => {
-        db.run(`
+    update: async (employee) => {
+        await pool.query(`
             UPDATE employees
-            SET workerCode = ?,
-                username = ?,
-                name = ?,
-                address = ?,
-                city = ?,
-                phone = ?,
-                route = ?,
-                time = ?,
-                department = ?,
-                company = ?,
-                email = ?,
-                active = ?,
-                updatedAt = CURRENT_TIMESTAMP
-            WHERE id = ?
+            SET "workerCode" = $1,
+                username = $2,
+                name = $3,
+                address = $4,
+                city = $5,
+                phone = $6,
+                route = $7,
+                time = $8,
+                department = $9,
+                company = $10,
+                email = $11,
+                active = $12,
+                "updatedAt" = CURRENT_TIMESTAMP
+            WHERE id = $13
         `, [
             employee.workerCode || null,
             employee.username,
@@ -172,43 +179,36 @@ const employeeQueries = {
             employee.active !== undefined ? employee.active : 1,
             employee.id
         ]);
-        saveDatabase();
     },
 
-    updatePassword: (password, id) => {
-        db.run(`
-            UPDATE employees
-            SET password = ?,
-                updatedAt = CURRENT_TIMESTAMP
-            WHERE id = ?
+    updatePassword: async (password, id) => {
+        await pool.query(`
+            UPDATE employees SET password = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2
         `, [password, id]);
-        saveDatabase();
     },
 
-    delete: (id) => {
-        db.run('DELETE FROM employees WHERE id = ?', [id]);
-        saveDatabase();
+    delete: async (id) => {
+        await pool.query('DELETE FROM employees WHERE id = $1', [id]);
     }
 };
 
 // Helper functions for drivers
 const driverQueries = {
-    getAll: () => {
-        const result = db.exec('SELECT * FROM drivers ORDER BY id');
-        if (result.length === 0) return [];
-        return result[0].values.map(row => rowToObject(result[0].columns, row));
+    getAll: async () => {
+        const { rows } = await pool.query('SELECT * FROM drivers ORDER BY id');
+        return rows;
     },
 
-    getById: (id) => {
-        const result = db.exec('SELECT * FROM drivers WHERE id = ?', [id]);
-        if (result.length === 0 || result[0].values.length === 0) return null;
-        return rowToObject(result[0].columns, result[0].values[0]);
+    getById: async (id) => {
+        const { rows } = await pool.query('SELECT * FROM drivers WHERE id = $1', [id]);
+        return rows[0] || null;
     },
 
-    create: (driver) => {
-        db.run(`
+    create: async (driver) => {
+        const { rows } = await pool.query(`
             INSERT INTO drivers (name, phone, route, city, vehicle, passengers)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id
         `, [
             driver.name,
             driver.phone || null,
@@ -217,23 +217,20 @@ const driverQueries = {
             driver.vehicle || null,
             driver.passengers || 0
         ]);
-        saveDatabase();
-
-        const result = db.exec('SELECT last_insert_rowid() as id');
-        return { lastInsertRowid: result[0].values[0][0] };
+        return { lastInsertRowid: rows[0].id };
     },
 
-    update: (driver) => {
-        db.run(`
+    update: async (driver) => {
+        await pool.query(`
             UPDATE drivers
-            SET name = ?,
-                phone = ?,
-                route = ?,
-                city = ?,
-                vehicle = ?,
-                passengers = ?,
-                updatedAt = CURRENT_TIMESTAMP
-            WHERE id = ?
+            SET name = $1,
+                phone = $2,
+                route = $3,
+                city = $4,
+                vehicle = $5,
+                passengers = $6,
+                "updatedAt" = CURRENT_TIMESTAMP
+            WHERE id = $7
         `, [
             driver.name,
             driver.phone || null,
@@ -243,23 +240,12 @@ const driverQueries = {
             driver.passengers || 0,
             driver.id
         ]);
-        saveDatabase();
     },
 
-    delete: (id) => {
-        db.run('DELETE FROM drivers WHERE id = ?', [id]);
-        saveDatabase();
+    delete: async (id) => {
+        await pool.query('DELETE FROM drivers WHERE id = $1', [id]);
     }
 };
-
-// Convert SQL row to object
-function rowToObject(columns, values) {
-    const obj = {};
-    columns.forEach((col, i) => {
-        obj[col] = values[i];
-    });
-    return obj;
-}
 
 // Password hashing utilities
 async function hashPassword(plainPassword) {
@@ -276,6 +262,5 @@ module.exports = {
     employeeQueries,
     driverQueries,
     hashPassword,
-    verifyPassword,
-    saveDatabase
+    verifyPassword
 };
