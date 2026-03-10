@@ -3172,7 +3172,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         <div class="section-title">התפלגות מסלולים</div>
         <div class="charts-row">
             <div class="chart-container">
-                <canvas id="pieChart" width="350" height="280"></canvas>
+                <canvas id="pieChart" width="280" height="280"></canvas>
             </div>
             <div class="chart-container">
                 <canvas id="barChart" width="350" height="280"></canvas>
@@ -3409,6 +3409,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <thead style="background-color: ${COLORS.primary};">
                                     <tr>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מסלול</th>
+                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">נהג/ת</th>
+                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">עובדים/ות</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מספר נסיעות</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">אחוז מהסה"כ</th>
                                     </tr>
@@ -3417,19 +3419,23 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     ${Object.keys(reportData.routeUsage).length > 0 ? Object.entries(reportData.routeUsage)
                                         .sort((a, b) => b[1] - a[1])
                                         .map(([route, count]) => {
-                                            const percentage = reportData.totalTrips > 0 
-                                                ? ((count / reportData.totalTrips) * 100).toFixed(1) 
+                                            const percentage = reportData.totalTrips > 0
+                                                ? ((count / reportData.totalTrips) * 100).toFixed(1)
                                                 : 0;
+                                            const driverName = drivers.find(d => d.route === route)?.name || '-';
+                                            const workerNames = (reportData.workersByRoute[route] || []).join(', ') || '-';
                                             return `
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-4 py-3 text-gray-900 font-medium">${route}</td>
+                                                    <td class="px-4 py-3 text-gray-600">${driverName}</td>
+                                                    <td class="px-4 py-3 text-gray-600 text-sm">${workerNames}</td>
                                                     <td class="px-4 py-3 text-gray-600">${count}</td>
                                                     <td class="px-4 py-3 text-gray-600">${percentage}%</td>
                                                 </tr>
                                             `;
                                         }).join('') : `
                                         <tr>
-                                            <td colspan="3" class="px-4 py-3 text-center text-gray-500">אין נתונים לחודש זה</td>
+                                            <td colspan="5" class="px-4 py-3 text-center text-gray-500">אין נתונים לחודש זה</td>
                                         </tr>
                                     `}
                                 </tbody>
@@ -3495,7 +3501,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                         <path d="M2.34059 14.3885C2.29152 16.7794 0.853713 18.2766 0.853713 18.2766C0.316949 18.8387 -0.010167 19.6015 0.000241186 20.443C0.0210575 22.1187 1.39196 23.4822 3.06916 23.4926C4.78353 23.503 6.17525 22.1158 6.17525 20.4044C6.17525 19.5792 5.84962 18.8313 5.32178 18.2766C5.32029 18.2752 5.31881 18.2737 5.31732 18.2722C4.76866 17.6105 4.26015 16.7377 3.94196 15.4352C3.76502 14.7096 3.49292 14.271 3.0424 14.0376C2.60228 13.8636 2.34059 13.9528 2.34059 14.3885Z" fill="#FFC600"/>
                                         <path d="M13.3734 17.5052L13.3719 17.5037C9.33651 16.0956 6.40439 12.3636 6.17095 7.91037V7.90888C6.09214 6.27778 4.74354 4.97974 3.09013 4.97974C1.38617 4.97974 0.00634766 6.35807 0.00634766 8.05906C0.00634766 9.42996 0.904423 10.5912 2.14448 10.9897C6.14864 12.426 9.04955 16.1596 9.26366 20.5994C9.26366 20.6009 9.26514 20.6039 9.26514 20.6068C9.36774 22.2141 10.7059 23.4869 12.343 23.4869C14.0469 23.4869 15.4268 22.1086 15.4268 20.4076C15.4253 19.0679 14.5688 17.929 13.3734 17.5052Z" fill="#00B300"/>
                                     </svg>
-                                    <span style="color:#fff;font-weight:600;font-size:11px;">Novolog © ${new Date().getFullYear()}</span>
+                                    <span style="color:#fff;font-weight:600;font-size:11px;">${new Date().getFullYear()} © Novolog</span>
                                 </span>
                             </div>
                         </div>
@@ -4011,7 +4017,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <path d="M2.34059 14.3885C2.29152 16.7794 0.853713 18.2766 0.853713 18.2766C0.316949 18.8387 -0.010167 19.6015 0.000241186 20.443C0.0210575 22.1187 1.39196 23.4822 3.06916 23.4926C4.78353 23.503 6.17525 22.1158 6.17525 20.4044C6.17525 19.5792 5.84962 18.8313 5.32178 18.2766C5.32029 18.2752 5.31881 18.2737 5.31732 18.2722C4.76866 17.6105 4.26015 16.7377 3.94196 15.4352C3.76502 14.7096 3.49292 14.271 3.0424 14.0376C2.60228 13.8636 2.34059 13.9528 2.34059 14.3885Z" fill="#FFC600"/>
                                     <path d="M13.3734 17.5052L13.3719 17.5037C9.33651 16.0956 6.40439 12.3636 6.17095 7.91037V7.90888C6.09214 6.27778 4.74354 4.97974 3.09013 4.97974C1.38617 4.97974 0.00634766 6.35807 0.00634766 8.05906C0.00634766 9.42996 0.904423 10.5912 2.14448 10.9897C6.14864 12.426 9.04955 16.1596 9.26366 20.5994C9.26366 20.6009 9.26514 20.6039 9.26514 20.6068C9.36774 22.2141 10.7059 23.4869 12.343 23.4869C14.0469 23.4869 15.4268 22.1086 15.4268 20.4076C15.4253 19.0679 14.5688 17.929 13.3734 17.5052Z" fill="#00B300"/>
                                 </svg>
-                                <span style="color:#2E485A;font-weight:600;font-size:12px;">Novolog © ${new Date().getFullYear()}</span>
+                                <span style="color:#2E485A;font-weight:600;font-size:12px;">${new Date().getFullYear()} © Novolog</span>
                             </span>
                         </div>
 
@@ -4893,6 +4899,27 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         // Start the app
         initApp();
+
+        // Auto-logout after 20 minutes of inactivity
+        const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
+        let idleTimer = null;
+
+        function resetIdleTimer() {
+            if (!loggedInUserId) return;
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                if (loggedInUserId) {
+                    loggedInUserId = null;
+                    currentSection = 'login';
+                    render();
+                    alert('נותקת אוטומטית עקב חוסר פעילות.');
+                }
+            }, IDLE_TIMEOUT_MS);
+        }
+
+        ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll', 'click'].forEach(event => {
+            document.addEventListener(event, resetIdleTimer, { passive: true });
+        });
     </script>
 
     <!-- Login loading overlay -->
