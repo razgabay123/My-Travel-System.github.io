@@ -692,7 +692,8 @@
             const route = document.getElementById('editRoute').value;
             const time = document.getElementById('editTime').value;
             const newUsername = document.getElementById('editUsername')?.value.trim() || '';
-            const newWorkerCode = (document.getElementById('editWorkerCode')?.value || '').trim() || null;
+            const _editWorkerCodeEl = document.getElementById('editWorkerCode');
+            const newWorkerCode = _editWorkerCodeEl !== null ? (_editWorkerCodeEl.value.trim() || null) : undefined;
 
             if (!name || !address || !city) {
                 showModal('error', 'נא למלא את כל שדות החובה');
@@ -749,7 +750,7 @@
                 const updatedData = {
                     name, address, city, phone, email, route, time,
                     username: resolvedUsername,
-                    workerCode: newWorkerCode || employees[index].workerCode || null,
+                    workerCode: newWorkerCode !== undefined ? newWorkerCode : (employees[index].workerCode || null),
                     company: department || null,
                     department: department || null,
                     active: employees[index].active ? 1 : 0
@@ -1088,9 +1089,11 @@
                                     ...importedEmp,
                                     id: existing.id,
                                     username: existing.username || importedEmp.name,
-                                    email: existing.email || importedEmp.email || undefined,
-                                    company: existing.company || existing.department || importedEmp.company || undefined,
-                                    department: existing.department || importedEmp.department || undefined
+                                    email: existing.email || importedEmp.email || null,
+                                    workerCode: importedEmp.workerCode || existing.workerCode || null,
+                                    company: importedEmp.company || existing.company || existing.department || null,
+                                    department: importedEmp.company || existing.department || null,
+                                    active: importedEmp.active ? 1 : 0
                                 };
                                 employees[existingIndex] = merged;
                                 // Sync to backend
@@ -1106,7 +1109,7 @@
                                             company: merged.company || null,
                                             department: merged.department || null,
                                             email: merged.email || null,
-                                            active: merged.active !== undefined ? merged.active : true
+                                            active: merged.active ? 1 : 0
                                         })
                                     });
                                 } catch (e) { console.warn('Import update sync failed:', e); }
