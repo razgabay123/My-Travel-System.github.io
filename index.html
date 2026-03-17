@@ -1856,10 +1856,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
                             return groups.map(driverList => {
                                 const name = driverList[0].name;
-                                const isMulti = driverList.length > 1;
 
-                                // Collect coming employees per route
-                                const routeSections = driverList.map(driver => {
+                                // Collect coming employees per route, keep only routes with passengers
+                                const allSections = driverList.map(driver => {
                                     const routeEmployees = employees.filter(e => {
                                         const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
                                         return assignedRoute === driver.route && e.active;
@@ -1868,10 +1867,16 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     return { driver, coming };
                                 });
 
+                                const routeSections = allSections.filter(s => s.coming.length > 0);
                                 const totalComing = routeSections.reduce((sum, s) => sum + s.coming.length, 0);
+
+                                // Skip card entirely if no passengers on any route
+                                if (totalComing === 0) return '';
+
+                                const isMulti = routeSections.length > 1;
                                 const routeLabel = isMulti
-                                    ? driverList.map(d => d.route).join(' → ')
-                                    : driverList[0].route + ' • ' + driverList[0].vehicle;
+                                    ? routeSections.map(s => s.driver.route).join(' → ')
+                                    : routeSections[0].driver.route + ' • ' + routeSections[0].driver.vehicle;
 
                                 return `
                                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -1892,14 +1897,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                             <div class="space-y-3 mb-4 max-h-72 overflow-y-auto">
                                                 ${routeSections.map(({ driver, coming }) => `
                                                     ${isMulti ? `<div class="text-xs font-bold uppercase tracking-wide mb-1" style="color: ${COLORS.primary};">${driver.route}</div>` : ''}
-                                                    ${coming.length > 0 ? coming.map(emp => `
+                                                    ${coming.map(emp => `
                                                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                                                             <span class="font-medium">${emp.name}</span>
                                                             <span class="text-gray-600">${emp.time}</span>
                                                         </div>
-                                                    `).join('') : `
-                                                        <div class="text-center p-3 text-gray-400 text-sm bg-gray-50 rounded-lg">אין נוסעים במסלול זה היום</div>
-                                                    `}
+                                                    `).join('')}
                                                 `).join('')}
                                             </div>
                                             <button onclick="showDriverMessageModal('${name}')" class="w-full py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
