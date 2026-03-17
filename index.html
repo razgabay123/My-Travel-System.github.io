@@ -2198,6 +2198,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                     class="text-sm font-bold px-3 py-1 rounded-full border-2 outline-none cursor-pointer transition hover:opacity-80"
                                                     style="background-color: ${COLORS.accent}33; color: ${COLORS.primary}; border-color: ${COLORS.accent};">
                                                     ${routeNames.map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
+                                                    <option value="__new__">+ מסלול חדש</option>
                                                 </select>
                                             </div>
 
@@ -2304,6 +2305,14 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         }
 
         async function changeDriverRoute(driverId, newRoute) {
+            if (newRoute === '__new__') {
+                const routeName = window.prompt('שם המסלול החדש:');
+                if (!routeName || !routeName.trim()) { render(); return; }
+                const trimmed = routeName.trim();
+                const existing = getRoutes().find(r => r.name === trimmed);
+                if (!existing) saveRoute(trimmed, [], '07:00');
+                newRoute = trimmed;
+            }
             const driver = drivers.find(d => d.id === driverId);
             if (!driver || driver.route === newRoute) return;
 
