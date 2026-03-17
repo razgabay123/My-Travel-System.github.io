@@ -1759,6 +1759,19 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function TransportManagerView() {
 
+            // Auto-initialize today's status if not set yet (mirrors EmployeeArrangementView behavior)
+            let initStatus = getDailyTransportationStatus() || {};
+            let needsSave = false;
+            employees.filter(e => e.active && !isWorkerRemoved(e.id)).forEach(emp => {
+                if (initStatus[emp.id.toString()] === undefined) {
+                    initStatus[emp.id.toString()] = true;
+                    needsSave = true;
+                }
+            });
+            if (needsSave) {
+                saveDailyTransportationStatus(initStatus);
+            }
+
             const todayStatus = getDailyTransportationStatus();
             const hasData = todayStatus !== null;
             const tempRouteAssignments = getTempRouteAssignments();
