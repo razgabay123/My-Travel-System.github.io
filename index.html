@@ -3859,7 +3859,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <tr>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מסלול</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">נהג</th>
-                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">מספר נוסעים</th>
+                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">נוסעים</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מספר נסיעות</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">אחוז מהסה"כ</th>
                                     </tr>
@@ -3872,12 +3872,15 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                 ? ((count / reportData.totalTrips) * 100).toFixed(1)
                                                 : 0;
                                             const driverName = drivers.find(d => d.route === route)?.name || '-';
-                                            const passengerCount = (reportData.workersByRoute[route] || []).length;
+                                            const passengers = reportData.workersByRoute[route] || [];
+                                            const passengersDisplay = passengers.length > 0
+                                                ? passengers.join(', ') + ' (' + passengers.length + ')'
+                                                : '-';
                                             return `
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-4 py-3 text-gray-900 font-medium">${route}</td>
                                                     <td class="px-4 py-3 text-gray-600">${driverName}</td>
-                                                    <td class="px-4 py-3 text-gray-600">${passengerCount}</td>
+                                                    <td class="px-4 py-3 text-gray-600 text-sm">${passengersDisplay}</td>
                                                     <td class="px-4 py-3 text-gray-600">${count}</td>
                                                     <td class="px-4 py-3 text-gray-600">${percentage}%</td>
                                                 </tr>
