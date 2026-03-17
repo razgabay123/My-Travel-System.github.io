@@ -2088,8 +2088,6 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const routeNames = routes.length > 0
                 ? routes.map(r => r.name)
                 : ['מסלול א', 'מסלול ב', 'מסלול ג', 'מסלול ד', 'מסלול ה', 'מסלול ו'];
-            const routeColors = ['#507480', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
             return `
                 <div class="space-y-4 lg:space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -2124,18 +2122,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </div>
                     ` : `
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                            ${drivers.map((driver, index) => {
-                                const routeColor = routeColors[index % routeColors.length];
+                            ${drivers.map((driver) => {
                                 const driverEmployees = employees.filter(e => e.active && e.route === driver.route);
                                 return `
                                     <div class="bg-white rounded-xl shadow-lg overflow-hidden transition hover:shadow-xl">
-                                        <div class="p-5" style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${routeColor} 100%);">
+                                        <div class="p-5" style="background-color: ${COLORS.primary};">
                                             <div class="flex items-center justify-between mb-3">
-                                                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.2);">
-                                                    <i class="fas fa-car text-2xl text-white"></i>
+                                                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.15);">
+                                                    <i class="fas fa-car text-2xl" style="color: ${COLORS.accent};"></i>
                                                 </div>
                                                 <div class="flex gap-2">
-                                                    <button onclick="openEditDriverModal(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(255,255,255,0.2);" title="עריכה">
+                                                    <button onclick="openEditDriverModal(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(255,255,255,0.15);" title="עריכה">
                                                         <i class="fas fa-edit text-white text-sm"></i>
                                                     </button>
                                                     <button onclick="deleteDriverPermanently(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(239,68,68,0.7);" title="מחיקה">
@@ -2144,7 +2141,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                 </div>
                                             </div>
                                             <h3 class="text-xl font-bold text-white">${driver.name}</h3>
-                                            <p class="text-sm mt-1" style="color: rgba(255,255,255,0.8);">${driver.vehicle || 'רכב לא הוגדר'}</p>
+                                            <p class="text-sm mt-1" style="color: ${COLORS.accent};">${driver.vehicle || 'רכב לא הוגדר'}</p>
                                         </div>
 
                                         <div class="p-4">
@@ -2152,7 +2149,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                 <span class="text-sm text-gray-500 font-medium">מסלול:</span>
                                                 <select onchange="changeDriverRoute(${driver.id}, this.value)"
                                                     class="text-sm font-bold px-3 py-1 rounded-full border-2 outline-none cursor-pointer transition hover:opacity-80"
-                                                    style="background-color: ${routeColor}22; color: ${routeColor}; border-color: ${routeColor};">
+                                                    style="background-color: ${COLORS.accent}33; color: ${COLORS.primary}; border-color: ${COLORS.accent};">
                                                     ${routeNames.map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
                                                 </select>
                                             </div>
