@@ -1,5 +1,5 @@
 // Service Worker for Transport System PWA
-const CACHE_NAME = 'transport-system-v50';
+const CACHE_NAME = 'transport-system-v51';
 const urlsToCache = [
   '/manifest.json',
   'https://cdn.tailwindcss.com',

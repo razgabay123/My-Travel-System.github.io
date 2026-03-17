@@ -5448,8 +5448,12 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         // Re-sync with backend when coming back online
         window.addEventListener('online', async () => {
             console.log('Back online - syncing with backend...');
+            // Preserve locally-managed driver data — routes are updated via explicit actions
+            // and the API may lag behind local changes (failed PUTs during brief disconnects)
+            const localDrivers = localStorage.getItem('drivers');
             const loaded = await loadWorkersData();
             if (loaded) {
+                if (localDrivers) drivers = JSON.parse(localDrivers);
                 saveEmployees();
                 render();
                 console.log('Data synced with backend successfully');
