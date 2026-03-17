@@ -1841,64 +1841,76 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </div>
                     ` : `
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        ${[...drivers].sort((a, b) => a.name.localeCompare(b.name, 'he')).map(driver => {
-
-                            // Filter employees by route (including temporary reassignments) and check if they're coming today
-                            const routeEmployees = employees.filter(e => {
-                                const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
-                                return assignedRoute === driver.route && e.active;
+                        ${(() => {
+                            // Group drivers by name, preserving Hebrew alphabetical order
+                            const sortedDrivers = [...drivers].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+                            const groups = [];
+                            const seen = {};
+                            sortedDrivers.forEach(driver => {
+                                if (!seen[driver.name]) {
+                                    seen[driver.name] = [];
+                                    groups.push(seen[driver.name]);
+                                }
+                                seen[driver.name].push(driver);
                             });
-                            const comingEmployees = routeEmployees.filter(emp => {
-                                const status = isEmployeeComingToday(emp.id);
-                                return status === true; // Only show if explicitly marked as coming
-                            });
-                            
-                            return `
-                                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
 
-                                    <div class="p-5" style="background-color: ${COLORS.primary};">
-                                        <div class="flex items-center justify-between">
-                                            <div>
+                            return groups.map(driverList => {
+                                const name = driverList[0].name;
+                                const isMulti = driverList.length > 1;
 
-                                                <h3 class="text-xl font-bold" style="color: ${COLORS.accent};">${driver.name}</h3>
-                                                <p class="text-sm opacity-90" style="color: ${COLORS.accent};">${driver.route} • ${driver.vehicle}</p>
+                                // Collect coming employees per route
+                                const routeSections = driverList.map(driver => {
+                                    const routeEmployees = employees.filter(e => {
+                                        const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
+                                        return assignedRoute === driver.route && e.active;
+                                    });
+                                    const coming = routeEmployees.filter(emp => isEmployeeComingToday(emp.id) === true);
+                                    return { driver, coming };
+                                });
+
+                                const totalComing = routeSections.reduce((sum, s) => sum + s.coming.length, 0);
+                                const routeLabel = isMulti
+                                    ? driverList.map(d => d.route).join(' → ')
+                                    : driverList[0].route + ' • ' + driverList[0].vehicle;
+
+                                return `
+                                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                                        <div class="p-5" style="background-color: ${COLORS.primary};">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <h3 class="text-xl font-bold" style="color: ${COLORS.accent};">${name}</h3>
+                                                    <p class="text-sm opacity-90" style="color: ${COLORS.accent};">${routeLabel}</p>
+                                                </div>
+                                                <i class="fas fa-car text-4xl" style="color: ${COLORS.accent}; opacity: 1;"></i>
                                             </div>
-
-                                            <i class="fas fa-car text-4xl" style="color: ${COLORS.accent}; opacity: 1;"></i>
+                                        </div>
+                                        <div class="p-5">
+                                            <div class="mb-4 flex items-center justify-between">
+                                                <span class="text-gray-600">נוסעים סה"כ:</span>
+                                                <span class="px-3 py-1 rounded-full font-bold" style="background-color: ${COLORS.primary}; color: white;">${totalComing}</span>
+                                            </div>
+                                            <div class="space-y-3 mb-4 max-h-72 overflow-y-auto">
+                                                ${routeSections.map(({ driver, coming }) => `
+                                                    ${isMulti ? `<div class="text-xs font-bold uppercase tracking-wide mb-1" style="color: ${COLORS.primary};">${driver.route}</div>` : ''}
+                                                    ${coming.length > 0 ? coming.map(emp => `
+                                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                                                            <span class="font-medium">${emp.name}</span>
+                                                            <span class="text-gray-600">${emp.time}</span>
+                                                        </div>
+                                                    `).join('') : `
+                                                        <div class="text-center p-3 text-gray-400 text-sm bg-gray-50 rounded-lg">אין נוסעים במסלול זה היום</div>
+                                                    `}
+                                                `).join('')}
+                                            </div>
+                                            <button onclick="showDriverMessageModal('${name}')" class="w-full py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
+                                                <i class="fas fa-paper-plane ml-2"></i>
+                                                שלח סידור ל-${name}
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div class="p-5">
-                                        <div class="mb-4 flex items-center justify-between">
-                                            <span class="text-gray-600">נוסעים במסלול:</span>
-
-                                            <span class="px-3 py-1 rounded-full font-bold" style="background-color: ${COLORS.primary}; color: white;">${comingEmployees.length}</span>
-                                        </div>
-
-                                        <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
-
-                                            ${comingEmployees.length > 0 ? comingEmployees.map(emp => `
-                                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                                                    <span class="font-medium">${emp.name}</span>
-                                                    <span class="text-gray-600">${emp.time}</span>
-                                                </div>
-
-                                            `).join('') : `
-                                                <div class="text-center p-4 text-gray-500 text-sm">
-                                                    אין נוסעים במסלול זה היום
-                                                </div>
-                                            `}
-                                        </div>
-
-
-                                        <button onclick="showDriverMessageModal('${driver.name}')" class="w-full py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
-                                            <i class="fas fa-paper-plane ml-2"></i>
-                                            שלח סידור ל-${driver.name}
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
+                                `;
+                            }).join('');
+                        })()}
                     </div>
 
                     `}
