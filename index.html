@@ -2350,24 +2350,18 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const driver = drivers.find(d => d.id === driverId);
             if (!driver || driver.route === newRoute) return;
 
-            const oldRoute = driver.route;
-
-            // If another driver already owns the target route, swap routes with them
-            const otherDriver = drivers.find(d => d.id !== driverId && d.route === newRoute);
-            if (otherDriver) {
-                otherDriver.route = oldRoute;
-                try {
-                    await fetch(`${API_CONFIG.baseUrl}/drivers/${otherDriver.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(otherDriver)
-                    });
-                } catch (error) {
-                    console.error('Error swapping driver route:', error);
-                }
+            // If another driver already has this route, auto-suffix with (2), (3), etc.
+            const existingRoutes = new Set(drivers.filter(d => d.id !== driverId).map(d => d.route));
+            // Strip base name (remove any existing " (N)" suffix to get the base route)
+            const baseName = newRoute.replace(/ \(\d+\)$/, '');
+            let resolvedRoute = newRoute;
+            if (existingRoutes.has(resolvedRoute)) {
+                let counter = 2;
+                while (existingRoutes.has(`${baseName} (${counter})`)) counter++;
+                resolvedRoute = `${baseName} (${counter})`;
             }
 
-            driver.route = newRoute;
+            driver.route = resolvedRoute;
             saveDriversToLocalStorage();
             try {
                 await fetch(`${API_CONFIG.baseUrl}/drivers/${driverId}`, {
