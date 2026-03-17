@@ -331,6 +331,7 @@
         let forgotPasswordModalState = { show: false, step: 'verify', verifiedEmployee: null }; // step: 'verify' or 'reset'
         let alertsModalState = { show: false };
         let addEmployeeModalState = { show: false };
+        let driverManagementState = { showAddModal: false, editDriver: null };
 
         // Load alerts from localStorage and auto-cleanup old ones
         function getAlerts() {
@@ -408,6 +409,10 @@
         // Save employees to localStorage
         function saveEmployees() {
             localStorage.setItem('employees', JSON.stringify(employees));
+            localStorage.setItem('drivers', JSON.stringify(drivers));
+        }
+
+        function saveDriversToLocalStorage() {
             localStorage.setItem('drivers', JSON.stringify(drivers));
         }
 
@@ -2076,6 +2081,298 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     </div>
 
             `;
+        }
+
+        function DriverManagementView() {
+            const routes = getRoutes();
+            const routeNames = routes.length > 0
+                ? routes.map(r => r.name)
+                : ['מסלול א', 'מסלול ב', 'מסלול ג', 'מסלול ד', 'מסלול ה', 'מסלול ו'];
+            const routeColors = ['#507480', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+            return `
+                <div class="space-y-4 lg:space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2 lg:gap-3">
+                            <i class="fas fa-id-card text-lg lg:text-xl" style="color: ${COLORS.primary};"></i>
+                            ניהול נהגים
+                        </h2>
+                        <div class="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
+                            <button onclick="importDriversFromExcel()" class="text-white px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.primary};">
+                                <i class="fas fa-file-excel ml-1 lg:ml-2"></i>
+                                <span class="hidden sm:inline">ייבוא נהגים</span>
+                                <span class="sm:hidden">ייבוא</span>
+                            </button>
+                            <button onclick="exportDriversToExcel()" class="px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
+                                <i class="fas fa-download ml-1 lg:ml-2"></i>
+                                <span class="hidden sm:inline">ייצוא נהגים</span>
+                                <span class="sm:hidden">ייצוא</span>
+                            </button>
+                            <button onclick="driverManagementState.showAddModal = true; render();" class="px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-bold transition shadow-md hover:opacity-90 flex-1 sm:flex-none" style="background-color: ${COLORS.accent}; color: ${COLORS.primary};">
+                                <i class="fas fa-plus ml-1 lg:ml-2"></i>
+                                <span class="hidden sm:inline">הוספת נהג</span>
+                                <span class="sm:hidden">הוספה</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    ${drivers.length === 0 ? `
+                        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                            <i class="fas fa-car text-6xl mb-4" style="color: ${COLORS.bgLight};"></i>
+                            <p class="text-gray-500 text-lg font-medium">אין נהגים במערכת</p>
+                            <p class="text-gray-400 text-sm mt-1">הוסף נהג חדש או ייבא מ-Excel</p>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                            ${drivers.map((driver, index) => {
+                                const routeColor = routeColors[index % routeColors.length];
+                                const driverEmployees = employees.filter(e => e.active && e.route === driver.route);
+                                return `
+                                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transition hover:shadow-xl">
+                                        <div class="p-5" style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${routeColor} 100%);">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.2);">
+                                                    <i class="fas fa-car text-2xl text-white"></i>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <button onclick="openEditDriverModal(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(255,255,255,0.2);" title="עריכה">
+                                                        <i class="fas fa-edit text-white text-sm"></i>
+                                                    </button>
+                                                    <button onclick="deleteDriverPermanently(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(239,68,68,0.7);" title="מחיקה">
+                                                        <i class="fas fa-trash-alt text-white text-sm"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-white">${driver.name}</h3>
+                                            <p class="text-sm mt-1" style="color: rgba(255,255,255,0.8);">${driver.vehicle || 'רכב לא הוגדר'}</p>
+                                        </div>
+
+                                        <div class="p-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <span class="text-sm text-gray-500 font-medium">מסלול:</span>
+                                                <select onchange="changeDriverRoute(${driver.id}, this.value)"
+                                                    class="text-sm font-bold px-3 py-1 rounded-full border-2 outline-none cursor-pointer transition hover:opacity-80"
+                                                    style="background-color: ${routeColor}22; color: ${routeColor}; border-color: ${routeColor};">
+                                                    ${routeNames.map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
+                                                </select>
+                                            </div>
+
+                                            ${driver.phone ? `
+                                            <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                                                <i class="fas fa-phone text-xs" style="color: ${COLORS.primary};"></i>
+                                                <span dir="ltr">${driver.phone}</span>
+                                            </div>` : ''}
+
+                                            ${driver.city ? `
+                                            <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                                                <i class="fas fa-map-marker-alt text-xs" style="color: ${COLORS.primary};"></i>
+                                                <span>${driver.city}</span>
+                                            </div>` : ''}
+
+                                            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                                <span class="text-xs text-gray-400">נוסעים במסלול</span>
+                                                <span class="text-sm font-bold px-2 py-0.5 rounded-full text-white" style="background-color: ${COLORS.primary};">${driverEmployees.length}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function openEditDriverModal(driverId) {
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver) return;
+            driverManagementState.editDriver = { ...driver };
+            driverManagementState.showAddModal = false;
+            render();
+        }
+
+        async function saveNewDriver() {
+            const name = document.getElementById('driverName').value.trim();
+            const phone = document.getElementById('driverPhone').value.trim();
+            const route = document.getElementById('driverRoute').value;
+            const city = document.getElementById('driverCity').value.trim();
+            const vehicle = document.getElementById('driverVehicle').value.trim();
+
+            if (!name) { showModal('error', 'נא למלא שם נהג'); return; }
+
+            const duplicate = drivers.find(d => d.name === name);
+            if (duplicate) { showModal('error', `נהג בשם "${name}" כבר קיים במערכת`); return; }
+
+            const newDriver = { name, phone, route, city, vehicle, passengers: 0 };
+
+            try {
+                const response = await fetch(`${API_CONFIG.baseUrl}/drivers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newDriver)
+                });
+                const data = await response.json();
+                drivers.push(data.driver || { ...newDriver, id: Date.now() });
+            } catch (error) {
+                console.error('Add driver API error:', error);
+                drivers.push({ ...newDriver, id: Date.now() });
+            }
+
+            saveDriversToLocalStorage();
+            driverManagementState.showAddModal = false;
+            render();
+            showModal('success', `הנהג "${name}" נוסף בהצלחה`);
+        }
+
+        async function saveEditedDriver() {
+            const driver = driverManagementState.editDriver;
+            if (!driver) return;
+
+            const name = document.getElementById('driverName').value.trim();
+            const phone = document.getElementById('driverPhone').value.trim();
+            const route = document.getElementById('driverRoute').value;
+            const city = document.getElementById('driverCity').value.trim();
+            const vehicle = document.getElementById('driverVehicle').value.trim();
+
+            if (!name) { showModal('error', 'נא למלא שם נהג'); return; }
+
+            const duplicate = drivers.find(d => d.name === name && d.id !== driver.id);
+            if (duplicate) { showModal('error', `נהג בשם "${name}" כבר קיים במערכת`); return; }
+
+            const updatedDriver = { ...driver, name, phone, route, city, vehicle };
+
+            try {
+                await fetch(`${API_CONFIG.baseUrl}/drivers/${driver.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedDriver)
+                });
+            } catch (error) {
+                console.error('Update driver API error:', error);
+            }
+
+            const index = drivers.findIndex(d => d.id === driver.id);
+            if (index !== -1) drivers[index] = updatedDriver;
+            saveDriversToLocalStorage();
+            driverManagementState.editDriver = null;
+            render();
+            showModal('success', `פרטי הנהג "${name}" עודכנו בהצלחה`);
+        }
+
+        async function changeDriverRoute(driverId, newRoute) {
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver || driver.route === newRoute) return;
+            driver.route = newRoute;
+            saveDriversToLocalStorage();
+            try {
+                await fetch(`${API_CONFIG.baseUrl}/drivers/${driverId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(driver)
+                });
+            } catch (error) {
+                console.error('Error updating driver route:', error);
+            }
+            render();
+        }
+
+        function deleteDriverPermanently(driverId) {
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver) return;
+
+            showModal('confirm-delete-employee', `האם ברצונך למחוק את הנהג "${driver.name}" לצמיתות? פעולה זו לא ניתנת לביטול.`, async () => {
+                try {
+                    await fetch(`${API_CONFIG.baseUrl}/drivers/${driverId}`, { method: 'DELETE' });
+                } catch (error) {
+                    console.error('Delete driver API error:', error);
+                }
+                const index = drivers.findIndex(d => d.id === driverId);
+                if (index !== -1) drivers.splice(index, 1);
+                saveDriversToLocalStorage();
+                render();
+                showModal('success', `הנהג "${driver.name}" נמחק`);
+            });
+        }
+
+        function exportDriversToExcel() {
+            try {
+                const exportData = drivers.map(d => ({
+                    'שם': d.name || '',
+                    'טלפון': d.phone || '',
+                    'מסלול': d.route || '',
+                    'עיר': d.city || '',
+                    'רכב': d.vehicle || '',
+                    'מספר נוסעים': d.passengers || 0
+                }));
+                if (exportData.length === 0) { showModal('error', 'אין נהגים לייצא'); return; }
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 25 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws, 'נהגים');
+                const dateStr = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `רשימת_נהגים_${dateStr}.xlsx`);
+                showModal('success', 'רשימת הנהגים יוצאה בהצלחה');
+            } catch (error) {
+                console.error('Error exporting drivers:', error);
+                showModal('error', 'שגיאה בייצוא הקובץ');
+            }
+        }
+
+        function importDriversFromExcel() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls,.ods';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                        if (jsonData.length === 0) { showModal('error', 'הקובץ ריק'); return; }
+
+                        let added = 0, skipped = 0;
+                        for (const row of jsonData) {
+                            const name = (row['שם'] || row['name'] || '').toString().trim();
+                            if (!name) continue;
+                            if (drivers.find(d => d.name === name)) { skipped++; continue; }
+
+                            const newDriver = {
+                                name,
+                                phone: (row['טלפון'] || row['phone'] || '').toString().trim(),
+                                route: (row['מסלול'] || row['route'] || 'מסלול א').toString().trim(),
+                                city: (row['עיר'] || row['city'] || '').toString().trim(),
+                                vehicle: (row['רכב'] || row['vehicle'] || '').toString().trim(),
+                                passengers: parseInt(row['מספר נוסעים'] || row['passengers'] || 0) || 0
+                            };
+
+                            try {
+                                const response = await fetch(`${API_CONFIG.baseUrl}/drivers`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(newDriver)
+                                });
+                                const resData = await response.json();
+                                drivers.push(resData.driver || { ...newDriver, id: Date.now() + Math.random() });
+                            } catch {
+                                drivers.push({ ...newDriver, id: Date.now() + Math.random() });
+                            }
+                            added++;
+                        }
+                        saveDriversToLocalStorage();
+                        render();
+                        showModal('success', `יובאו ${added} נהגים${skipped > 0 ? `, ${skipped} דולגו (כבר קיימים)` : ''}`);
+                    } catch (error) {
+                        console.error('Import drivers error:', error);
+                        showModal('error', 'שגיאה בייבוא הקובץ');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            input.click();
         }
 
         function deleteEmployeePermanently(employeeId) {
@@ -4012,6 +4309,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 { id: 'employee-management', label: 'ניהול עובדים/ות', icon: 'fa-user-cog' },
                 { id: 'employee-arrangement', label: 'סידור עובדים/ות', icon: 'fa-users-cog' },
                 { id: 'transport-manager', label: 'אחראי הסעות', icon: 'fa-paper-plane' },
+                { id: 'driver-management', label: 'ניהול נהגים', icon: 'fa-id-card' },
                 { id: 'driver-view', label: 'תצוגת נהג', icon: 'fa-car' },
                 { id: 'routes', label: 'ניהול מסלולים', icon: 'fa-route' },
                 { id: 'reports', label: 'דוחות', icon: 'fa-chart-bar' },
@@ -4030,6 +4328,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                 case 'employees': content = EmployeesView(); break;
 
                 case 'employee-management': content = EmployeeManagementView(); break;
+                case 'driver-management': content = DriverManagementView(); break;
                 case 'routes': content = RoutesView(); break;
                 case 'employee-portal': content = EmployeePortalView(); break;
 
@@ -4069,7 +4368,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             // If login screen, show only login view without sidebar/header
             if (currentSection === 'login') {
 
-                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent();
+                document.getElementById('app').innerHTML = content + ModalComponent() + RegisterModalComponent() + ForgotPasswordModalComponent() + AlertsModalComponent() + AddEmployeeModalComponent() + DriverManagementModalComponent();
             } else {
                 document.getElementById('app').innerHTML = `
 
@@ -4149,6 +4448,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     ${ForgotPasswordModalComponent()}
                     ${AlertsModalComponent()}
                     ${AddEmployeeModalComponent()}
+                    ${DriverManagementModalComponent()}
                 `;
             }
         }
@@ -4740,6 +5040,63 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function DriverManagementModalComponent() {
+            if (!driverManagementState.showAddModal && !driverManagementState.editDriver) return '';
+            const isEditing = !!driverManagementState.editDriver;
+            const driver = driverManagementState.editDriver || {};
+            const routes = getRoutes();
+            const routeNames = routes.length > 0
+                ? routes.map(r => r.name)
+                : ['מסלול א', 'מסלול ב', 'מסלול ג', 'מסלול ד', 'מסלול ה', 'מסלול ו'];
+
+            return `
+                <div class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop" style="background-color: ${COLORS.modalBackdrop};">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <i class="fas fa-car text-5xl mb-4" style="color: ${COLORS.accent};"></i>
+                                <h3 class="text-xl font-bold text-gray-800 mb-1">${isEditing ? 'עריכת נהג' : 'הוספת נהג חדש'}</h3>
+                            </div>
+                            <form onsubmit="event.preventDefault(); ${isEditing ? 'saveEditedDriver()' : 'saveNewDriver()'};" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">שם *</label>
+                                        <input type="text" id="driverName" value="${driver.name || ''}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">טלפון</label>
+                                        <input type="text" id="driverPhone" value="${driver.phone || ''}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" placeholder="050-0000000" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">מסלול</label>
+                                        <select id="driverRoute" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white">
+                                            ${routeNames.map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">עיר</label>
+                                        <input type="text" id="driverCity" value="${driver.city || ''}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" placeholder="עיר">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-2">רכב</label>
+                                        <input type="text" id="driverVehicle" value="${driver.vehicle || ''}" class="w-full border-2 border-gray-300 rounded-lg p-3 outline-none transition bg-white" placeholder="לדוגמה: מרצדס ספרינטר">
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 justify-center mt-6">
+                                    <button type="button" onclick="driverManagementState.showAddModal = false; driverManagementState.editDriver = null; render();" class="px-8 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90" style="background-color: ${COLORS.bgLight}; color: ${COLORS.textDark};">
+                                        ביטול
+                                    </button>
+                                    <button type="submit" class="px-8 py-3 rounded-lg font-bold transition shadow-md hover:opacity-90 text-white" style="background-color: ${COLORS.primary};">
+                                        ${isEditing ? 'שמור שינויים' : 'הוספה'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
