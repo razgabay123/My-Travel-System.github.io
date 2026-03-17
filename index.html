@@ -3059,7 +3059,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
         function RoutesView() {
             const routes = getRoutes();
-            
+            const tempRouteAssignments = getTempRouteAssignments();
+
             return `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between flex-wrap gap-4">
@@ -3085,7 +3086,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         ${routes.map((route, index) => {
                             const townMap = formatRouteByTown(route.locations);
                             const mainCity = Object.keys(townMap)[0] || 'לא צוין';
-                            const employeeCount = route.employees.length;
+                            const employeeCount = employees.filter(e => {
+                                const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
+                                return e.active && assignedRoute === route.name;
+                            }).length;
                             const departureTime = route.departureTime || (route.employees.length > 0 
                                 ? route.employees.reduce((min, emp) => {
                                     const empTime = emp.time || '99:99';
