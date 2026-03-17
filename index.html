@@ -1329,7 +1329,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                             <div class="space-y-3">
                                 ${(() => {
                                     const tempRouteAssignments = getTempRouteAssignments();
-                                    return drivers.map(driver => {
+                                    return [...drivers].sort((a, b) => a.name.localeCompare(b.name, 'he')).map(driver => {
                                         const passengerCount = employees.filter(e => {
                                             const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
                                             return e.active && assignedRoute === driver.route && isEmployeeComingToday(e.id) === true;
@@ -1841,7 +1841,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                         </div>
                     ` : `
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        ${drivers.map(driver => {
+                        ${[...drivers].sort((a, b) => a.name.localeCompare(b.name, 'he')).map(driver => {
 
                             // Filter employees by route (including temporary reassignments) and check if they're coming today
                             const routeEmployees = employees.filter(e => {
