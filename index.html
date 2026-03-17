@@ -3110,7 +3110,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     <div class="flex justify-between items-center">
 
                                                 <span class="text-gray-600 text-sm lg:text-base">נהג:</span>
-                                                <span class="font-bold text-sm lg:text-base">${route.driver || 'לא הוגדר'}</span>
+                                                <span class="font-bold text-sm lg:text-base">${drivers.find(d => d.route === route.name)?.name || route.driver || 'לא הוגדר'}</span>
                                     </div>
                                     <div class="flex justify-between items-center">
 
