@@ -2200,7 +2200,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                 <select onchange="changeDriverRoute(${driver.id}, this.value)"
                                                     class="text-sm font-bold px-3 py-1 rounded-full border-2 outline-none cursor-pointer transition hover:opacity-80"
                                                     style="background-color: ${COLORS.accent}33; color: ${COLORS.primary}; border-color: ${COLORS.accent};">
-                                                    ${routeNames.map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
+                                                    ${(routeNames.includes(driver.route) ? routeNames : [driver.route, ...routeNames]).map(r => `<option value="${r}" ${r === driver.route ? 'selected' : ''}>${r}</option>`).join('')}
                                                     <option value="__new__">+ מסלול חדש</option>
                                                 </select>
                                             </div>
