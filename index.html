@@ -3858,6 +3858,8 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                 <thead style="background-color: ${COLORS.primary};">
                                     <tr>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מסלול</th>
+                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">נהג</th>
+                                        <th class="px-4 py-3 text-right text-sm font-bold text-white">מספר נוסעים</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">מספר נסיעות</th>
                                         <th class="px-4 py-3 text-right text-sm font-bold text-white">אחוז מהסה"כ</th>
                                     </tr>
@@ -3866,19 +3868,23 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                     ${Object.keys(reportData.routeUsage).length > 0 ? Object.entries(reportData.routeUsage)
                                         .sort((a, b) => b[1] - a[1])
                                         .map(([route, count]) => {
-                                            const percentage = reportData.totalTrips > 0 
-                                                ? ((count / reportData.totalTrips) * 100).toFixed(1) 
+                                            const percentage = reportData.totalTrips > 0
+                                                ? ((count / reportData.totalTrips) * 100).toFixed(1)
                                                 : 0;
+                                            const driverName = drivers.find(d => d.route === route)?.name || '-';
+                                            const passengerCount = (reportData.workersByRoute[route] || []).length;
                                             return `
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-4 py-3 text-gray-900 font-medium">${route}</td>
+                                                    <td class="px-4 py-3 text-gray-600">${driverName}</td>
+                                                    <td class="px-4 py-3 text-gray-600">${passengerCount}</td>
                                                     <td class="px-4 py-3 text-gray-600">${count}</td>
                                                     <td class="px-4 py-3 text-gray-600">${percentage}%</td>
                                                 </tr>
                                             `;
                                         }).join('') : `
                                         <tr>
-                                            <td colspan="3" class="px-4 py-3 text-center text-gray-500">אין נתונים לחודש זה</td>
+                                            <td colspan="5" class="px-4 py-3 text-center text-gray-500">אין נתונים לחודש זה</td>
                                         </tr>
                                     `}
                                 </tbody>

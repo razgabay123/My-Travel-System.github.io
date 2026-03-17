@@ -20,7 +20,11 @@
       "Bash(npm init:*)",
       "Bash(node -e \"const {Document}=require\\(''d:/Projects/omri_project/tmp_docx/node_modules/docx''\\); console.log\\(''docx loaded:'', typeof Document\\)\")",
       "Bash(node generate_docs.js)",
-      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''d:\\\\Projects\\\\omri_project\\\\tmp_docx''\")"
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''d:\\\\Projects\\\\omri_project\\\\tmp_docx''\")",
+      "Read(//c/Users/user/.claude/projects/D--Projects-omri-project/memory/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\user\\.claude\\projects\\D--Projects-omri-project\\memory"
     ]
   },
   "defaultMode": "bypassPermissions"
