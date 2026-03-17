@@ -2242,7 +2242,17 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         async function duplicateDriver(driverId) {
             const driver = drivers.find(d => d.id === driverId);
             if (!driver) return;
-            const copy = { name: driver.name, phone: driver.phone, route: driver.route, city: driver.city, vehicle: driver.vehicle, passengers: 0 };
+
+            // Generate a unique route name that doesn't clash with existing routes
+            const existingRoutes = new Set(drivers.map(d => d.route));
+            let newRoute = driver.route + ' (2)';
+            let counter = 2;
+            while (existingRoutes.has(newRoute)) {
+                counter++;
+                newRoute = driver.route + ` (${counter})`;
+            }
+
+            const copy = { name: driver.name, phone: driver.phone, route: newRoute, city: driver.city, vehicle: driver.vehicle, passengers: 0 };
             try {
                 const response = await fetch(`${API_CONFIG.baseUrl}/drivers`, {
                     method: 'POST',
@@ -2254,7 +2264,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             } catch (error) {
                 copy.id = Date.now();
             }
-            drivers.push(copy);
+
+            // Insert right after the original driver
+            const originalIndex = drivers.findIndex(d => d.id === driverId);
+            drivers.splice(originalIndex + 1, 0, copy);
             saveDriversToLocalStorage();
             render();
         }
