@@ -2268,6 +2268,24 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
         async function changeDriverRoute(driverId, newRoute) {
             const driver = drivers.find(d => d.id === driverId);
             if (!driver || driver.route === newRoute) return;
+
+            const oldRoute = driver.route;
+
+            // If another driver already owns the target route, swap routes with them
+            const otherDriver = drivers.find(d => d.id !== driverId && d.route === newRoute);
+            if (otherDriver) {
+                otherDriver.route = oldRoute;
+                try {
+                    await fetch(`${API_CONFIG.baseUrl}/drivers/${otherDriver.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(otherDriver)
+                    });
+                } catch (error) {
+                    console.error('Error swapping driver route:', error);
+                }
+            }
+
             driver.route = newRoute;
             saveDriversToLocalStorage();
             try {
