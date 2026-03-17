@@ -1,8 +1,27 @@
 {
-  "defaultMode": "bypassPermissions",
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git restore:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pandoc --version)",
+      "Bash(pip show:*)",
+      "Bash(pip3 show:*)",
+      "Bash(powershell -Command \"Get-Command pandoc 2>$null\")",
+      "Bash(node -e \"try { require\\(''docx''\\); console.log\\(''docx available''\\); } catch\\(e\\) { console.log\\(''no docx:'', e.message\\); }\")",
+      "Read(//d/tmp/**)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"try { require\\(''/tmp/node_modules/docx''\\); console.log\\(''docx available''\\); } catch\\(e\\) { console.log\\(''error:'', e.message\\); }\")",
+      "Read(//c/Users/user/AppData/Roaming/npm/node_modules/**)",
+      "Read(//c/Users/user/AppData/Roaming/npm/node_modules//**)",
+      "Bash(powershell -Command \"$word = New-Object -ComObject Word.Application; Write-Output ''Word COM available''; $word.Quit\\(\\)\")",
+      "Bash(mkdir -p /d/Projects/omri_project/tmp_docx)",
+      "Bash(npm init:*)",
+      "Bash(node -e \"const {Document}=require\\(''d:/Projects/omri_project/tmp_docx/node_modules/docx''\\); console.log\\(''docx loaded:'', typeof Document\\)\")",
+      "Bash(node generate_docs.js)",
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''d:\\\\Projects\\\\omri_project\\\\tmp_docx''\")"
     ]
-  }
+  },
+  "defaultMode": "bypassPermissions"
 }
