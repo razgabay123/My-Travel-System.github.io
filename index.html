@@ -2304,8 +2304,6 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
 
             if (!name) { showModal('error', 'נא למלא שם נהג'); return; }
 
-            const duplicate = drivers.find(d => d.name === name && d.id !== driver.id);
-            if (duplicate) { showModal('error', `נהג בשם "${name}" כבר קיים במערכת`); return; }
 
             const updatedDriver = { ...driver, name, phone, route, city, vehicle };
 
