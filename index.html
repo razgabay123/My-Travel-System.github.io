@@ -2182,6 +2182,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                                                     <button onclick="openEditDriverModal(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(255,255,255,0.15);" title="עריכה">
                                                         <i class="fas fa-edit text-white text-sm"></i>
                                                     </button>
+                                                    <button onclick="duplicateDriver(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(255,255,255,0.15);" title="שכפול">
+                                                        <i class="fas fa-copy text-white text-sm"></i>
+                                                    </button>
                                                     <button onclick="deleteDriverPermanently(${driver.id})" class="w-8 h-8 rounded-full flex items-center justify-center transition hover:opacity-80" style="background-color: rgba(239,68,68,0.7);" title="מחיקה">
                                                         <i class="fas fa-trash-alt text-white text-sm"></i>
                                                     </button>
@@ -2236,6 +2239,26 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             render();
         }
 
+        async function duplicateDriver(driverId) {
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver) return;
+            const copy = { name: driver.name, phone: driver.phone, route: driver.route, city: driver.city, vehicle: driver.vehicle, passengers: 0 };
+            try {
+                const response = await fetch(`${API_CONFIG.baseUrl}/drivers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(copy)
+                });
+                const data = await response.json();
+                copy.id = data.id || Date.now();
+            } catch (error) {
+                copy.id = Date.now();
+            }
+            drivers.push(copy);
+            saveDriversToLocalStorage();
+            render();
+        }
+
         async function saveNewDriver() {
             const name = document.getElementById('driverName').value.trim();
             const phone = document.getElementById('driverPhone').value.trim();
@@ -2244,6 +2267,9 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const vehicle = document.getElementById('driverVehicle').value.trim();
 
             if (!name) { showModal('error', 'נא למלא שם נהג'); return; }
+
+            const duplicate = drivers.find(d => d.name === name);
+            if (duplicate) { showModal('error', `נהג בשם "${name}" כבר קיים במערכת`); return; }
 
             const newDriver = { name, phone, route, city, vehicle, passengers: 0 };
 
