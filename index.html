@@ -2088,6 +2088,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
             const routeNames = routes.length > 0
                 ? routes.map(r => r.name)
                 : ['מסלול א', 'מסלול ב', 'מסלול ג', 'מסלול ד', 'מסלול ה', 'מסלול ו'];
+            const tempRouteAssignments = getTempRouteAssignments();
             return `
                 <div class="space-y-4 lg:space-y-6">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -2123,7 +2124,10 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     ` : `
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                             ${drivers.map((driver) => {
-                                const driverEmployees = employees.filter(e => e.active && e.route === driver.route);
+                                const driverEmployees = employees.filter(e => {
+                                    const assignedRoute = tempRouteAssignments[e.id.toString()] || e.route;
+                                    return e.active && assignedRoute === driver.route;
+                                });
                                 return `
                                     <div class="bg-white rounded-xl shadow-lg overflow-hidden transition hover:shadow-xl">
                                         <div class="p-5" style="background-color: ${COLORS.primary};">
