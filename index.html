@@ -2308,7 +2308,7 @@ A: שם | B: כתובת | C: עיר | D: טלפון | E: מסלול | F: שעה 
                     body: JSON.stringify(newDriver)
                 });
                 const data = await response.json();
-                drivers.push(data.driver || { ...newDriver, id: Date.now() });
+                drivers.push({ ...newDriver, id: data.id || Date.now() });
             } catch (error) {
                 console.error('Add driver API error:', error);
                 drivers.push({ ...newDriver, id: Date.now() });

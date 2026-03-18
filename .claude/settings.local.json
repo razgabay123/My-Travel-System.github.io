@@ -22,7 +22,8 @@
       "Bash(node generate_docs.js)",
       "Bash(powershell -Command \"Remove-Item -Recurse -Force ''d:\\\\Projects\\\\omri_project\\\\tmp_docx''\")",
       "Read(//c/Users/user/.claude/projects/D--Projects-omri-project/memory/**)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(git config:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\user\\.claude\\projects\\D--Projects-omri-project\\memory"
